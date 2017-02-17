@@ -2,26 +2,25 @@
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Test.Requests.Generated
+using Microsoft.Graph;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Test.Requests.Generated
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-
-    using Microsoft.Graph.Core;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
-    [TestClass]
     public class ActionRequestTests : RequestTestBase
     {
         /// <summary>
         /// Tests building a request for an action with multiple required parameters (assignLicence).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void MultipleRequiredParameters()
         {
             var expectedRequestUrl = string.Format("{0}/me/microsoft.graph.assignLicense", this.graphBaseUrl);
@@ -31,58 +30,58 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
             var assignLicenseRequestBuilder = this.graphServiceClient.Me.AssignLicense(addLicenses, removeLicenses) as UserAssignLicenseRequestBuilder;
 
-            Assert.IsNotNull(assignLicenseRequestBuilder, "Unexpected request builder.");
-            Assert.AreEqual(expectedRequestUrl, assignLicenseRequestBuilder.RequestUrl, "Unexpected request builder URL.");
+            Assert.NotNull(assignLicenseRequestBuilder);
+            Assert.Equal(expectedRequestUrl, assignLicenseRequestBuilder.RequestUrl);
 
             var assignLicenseRequest = assignLicenseRequestBuilder.Request() as UserAssignLicenseRequest;
-            Assert.IsNotNull(assignLicenseRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(assignLicenseRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(addLicenses, assignLicenseRequest.RequestBody.AddLicenses, "Unexpected value for AddLicenses in request body.");
-            Assert.AreEqual(removeLicenses, assignLicenseRequest.RequestBody.RemoveLicenses, "Unexpected value for RemoveLicenses in request body.");
+            Assert.NotNull(assignLicenseRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(assignLicenseRequest.RequestUrl));
+            Assert.Equal(addLicenses, assignLicenseRequest.RequestBody.AddLicenses);
+            Assert.Equal(removeLicenses, assignLicenseRequest.RequestBody.RemoveLicenses);
         }
 
         /// <summary>
         /// Tests building a request for an action with an optional parameter set to null that's not a nullable type.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void OptionalParameterWithNonNullableType_NullValue()
         {
             var expectedRequestUrl = string.Format("{0}/me/microsoft.graph.getMemberGroups", this.graphBaseUrl);
 
             var getMemberGroupsRequestBuilder = this.graphServiceClient.Me.GetMemberGroups() as DirectoryObjectGetMemberGroupsRequestBuilder;
 
-            Assert.IsNotNull(getMemberGroupsRequestBuilder, "Unexpected request builder.");
-            Assert.AreEqual(expectedRequestUrl, getMemberGroupsRequestBuilder.RequestUrl, "Unexpected request builder URL.");
+            Assert.NotNull(getMemberGroupsRequestBuilder);
+            Assert.Equal(expectedRequestUrl, getMemberGroupsRequestBuilder.RequestUrl);
 
             var getMemberGroupsRequest = getMemberGroupsRequestBuilder.Request() as DirectoryObjectGetMemberGroupsRequest;
-            Assert.IsNotNull(getMemberGroupsRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(getMemberGroupsRequest.RequestUrl), "Unexpected request URL.");
-            Assert.IsNull(getMemberGroupsRequest.RequestBody.SecurityEnabledOnly, "Unexpected value for SecurityEnabledOnly in request body.");
+            Assert.NotNull(getMemberGroupsRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(getMemberGroupsRequest.RequestUrl));
+            Assert.Null(getMemberGroupsRequest.RequestBody.SecurityEnabledOnly);
         }
 
         /// <summary>
         /// Tests building a request for an action with an optional parameter that's not a nullable type.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void OptionalParameterWithNonNullableType_ValueSet()
         {
             var expectedRequestUrl = string.Format("{0}/me/microsoft.graph.getMemberGroups", this.graphBaseUrl);
 
             var getMemberGroupsRequestBuilder = this.graphServiceClient.Me.GetMemberGroups(true) as DirectoryObjectGetMemberGroupsRequestBuilder;
 
-            Assert.IsNotNull(getMemberGroupsRequestBuilder, "Unexpected request builder.");
-            Assert.AreEqual(expectedRequestUrl, getMemberGroupsRequestBuilder.RequestUrl, "Unexpected request builder URL.");
+            Assert.NotNull(getMemberGroupsRequestBuilder);
+            Assert.Equal(expectedRequestUrl, getMemberGroupsRequestBuilder.RequestUrl);
 
             var getMemberGroupsRequest = getMemberGroupsRequestBuilder.Request() as DirectoryObjectGetMemberGroupsRequest;
-            Assert.IsNotNull(getMemberGroupsRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(getMemberGroupsRequest.RequestUrl), "Unexpected request URL.");
-            Assert.IsTrue(getMemberGroupsRequest.RequestBody.SecurityEnabledOnly.Value, "Unexpected value for SecurityEnabledOnly in request body.");
+            Assert.NotNull(getMemberGroupsRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(getMemberGroupsRequest.RequestUrl));
+            Assert.True(getMemberGroupsRequest.RequestBody.SecurityEnabledOnly.Value);
         }
 
         /// <summary>
         /// Tests building a request for an action that takes in no parameters (send).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void NoParameters()
         {
             var messageId = "messageId";
@@ -91,34 +90,32 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
             var sendRequestBuilder = this.graphServiceClient.Me.MailFolders.Drafts.Messages[messageId].Send() as MessageSendRequestBuilder;
 
-            Assert.IsNotNull(sendRequestBuilder, "Unexpected request builder.");
-            Assert.AreEqual(expectedRequestUrl, sendRequestBuilder.RequestUrl, "Unexpected request builder URL.");
+            Assert.NotNull(sendRequestBuilder);
+            Assert.Equal(expectedRequestUrl, sendRequestBuilder.RequestUrl);
 
             var sendRequest = sendRequestBuilder.Request() as MessageSendRequest;
-            Assert.IsNotNull(sendRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(sendRequest.RequestUrl), "Unexpected request URL.");
+            Assert.NotNull(sendRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(sendRequest.RequestUrl));
         }
 
         /// <summary>
         /// Tests that an exception is thrown when the first of required parameters passed to an action request is null (assignLicence).
         /// </summary>
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public void MultipleRequiredParameters_FirstParameterNull()
         {
             var removeLicenses = new List<Guid> { new Guid() };
 
             try
             {
-                var assignLicenseRequestBuilder = this.graphServiceClient.Me.AssignLicense(null, removeLicenses).Request();
+                Assert.Throws<ServiceException>(() => this.graphServiceClient.Me.AssignLicense(null, removeLicenses).Request());
             }
             catch (ServiceException serviceException)
             {
-                Assert.IsTrue(serviceException.IsMatch(GraphErrorCode.InvalidRequest.ToString()), "Unexpected error code thrown.");
-                Assert.AreEqual(
+                Assert.True(serviceException.IsMatch(GraphErrorCode.InvalidRequest.ToString()));
+                Assert.Equal(
                     "addLicenses is a required parameter for this method request.",
-                    serviceException.Error.Message,
-                    "Unexpected error code thrown.");
+                    serviceException.Error.Message);
 
                 throw;
             }
@@ -127,23 +124,21 @@ namespace Microsoft.Graph.Test.Requests.Generated
         /// <summary>
         /// Tests that an exception is thrown when the second of required parameters passed to an action request is null (assignLicence).
         /// </summary>
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public void MultipleRequiredParameters_LastParameterNull()
         {
             var addLicenses = new List<AssignedLicense> { new AssignedLicense() };
 
             try
             {
-                var assignLicenseRequestBuilder = this.graphServiceClient.Me.AssignLicense(addLicenses, null).Request();
+                Assert.Throws<ServiceException>(() => this.graphServiceClient.Me.AssignLicense(addLicenses, null).Request());
             }
             catch (ServiceException serviceException)
             {
-                Assert.IsTrue(serviceException.IsMatch(GraphErrorCode.InvalidRequest.ToString()), "Unexpected error code thrown.");
-                Assert.AreEqual(
+                Assert.True(serviceException.IsMatch(GraphErrorCode.InvalidRequest.ToString()));
+                Assert.Equal(
                     "removeLicenses is a required parameter for this method request.",
-                    serviceException.Error.Message,
-                    "Unexpected error code thrown.");
+                    serviceException.Error.Message);
 
                 throw;
             }
@@ -153,7 +148,7 @@ namespace Microsoft.Graph.Test.Requests.Generated
         /// Tests the PostAsync() method for an action that returns a collection of primitives (checkMemberGroups).
         /// The action is also inherited from the base class.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task PostAsync_CollectionOfPrimitivesReturnType()
         {
             using (var httpResponseMessage = new HttpResponseMessage())
@@ -161,7 +156,7 @@ namespace Microsoft.Graph.Test.Requests.Generated
             using (var streamContent = new StreamContent(responseStream))
             {
                 httpResponseMessage.Content = streamContent;
-                
+
                 var nextQueryKey = "key";
                 var nextQueryValue = "value";
 
@@ -188,7 +183,7 @@ namespace Microsoft.Graph.Test.Requests.Generated
                     Value = checkMemberGroupsCollectionPage,
                     AdditionalData = new Dictionary<string, object> { { "@odata.nextLink", nextPageRequestUrl } },
                 };
-                
+
                 this.serializer.Setup(
                     serializer => serializer.SerializeObject(It.IsAny<DirectoryObjectCheckMemberGroupsRequestBody>()))
                     .Returns("request body string");
@@ -199,27 +194,26 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
                 var returnedCollectionPage = await this.graphServiceClient.Me.CheckMemberGroups(new List<string>()).Request().PostAsync();
 
-                Assert.IsNotNull(returnedCollectionPage, "Collection page not returned.");
-                Assert.AreEqual(checkMemberGroupsCollectionPage, returnedCollectionPage, "Unexpected collection page returned.");
-                Assert.AreEqual(
+                Assert.NotNull(returnedCollectionPage);
+                Assert.Equal(checkMemberGroupsCollectionPage, returnedCollectionPage);
+                Assert.Equal(
                     checkMemberGroupsCollectionPage.AdditionalData,
-                    returnedCollectionPage.AdditionalData,
-                    "Additional data not initialized on collection page.");
+                    returnedCollectionPage.AdditionalData);
 
                 var nextPageRequest = returnedCollectionPage.NextPageRequest as DirectoryObjectCheckMemberGroupsRequest;
 
-                Assert.IsNotNull(nextPageRequest, "Next page request not returned.");
-                Assert.AreEqual(new Uri(requestUrl), new Uri(nextPageRequest.RequestUrl), "Unexpected URL initialized for next page request.");
-                Assert.AreEqual(1, nextPageRequest.QueryOptions.Count, "Unexpected query options initialized.");
-                Assert.AreEqual(nextQueryKey, nextPageRequest.QueryOptions[0].Name, "Unexpected query option name initialized.");
-                Assert.AreEqual(nextQueryValue, nextPageRequest.QueryOptions[0].Value, "Unexpected query option value initialized.");
+                Assert.NotNull(nextPageRequest);
+                Assert.Equal(new Uri(requestUrl), new Uri(nextPageRequest.RequestUrl));
+                Assert.Equal(1, nextPageRequest.QueryOptions.Count);
+                Assert.Equal(nextQueryKey, nextPageRequest.QueryOptions[0].Name);
+                Assert.Equal(nextQueryValue, nextPageRequest.QueryOptions[0].Value);
             }
         }
 
         /// <summary>
         /// Tests the PostAsync() method for an action that returns a single entity (createLink).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task PostAsync_NonCollectionReturnType()
         {
             using (var httpResponseMessage = new HttpResponseMessage())
@@ -250,15 +244,15 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
                 var permission = await this.graphServiceClient.Me.Drive.Items["id"].CreateLink("edit", "scope").Request().PostAsync();
 
-                Assert.IsNotNull(permission, "Permission not returned.");
-                Assert.AreEqual(expectedPermission, permission, "Unexpected permission returned.");
+                Assert.NotNull(permission);
+                Assert.Equal(expectedPermission, permission);
             }
         }
 
         /// <summary>
         /// Tests the PostAsync() method for an action that returns nothing (send).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task PostAsync_NoReturnValue()
         {
             using (var httpResponseMessage = new HttpResponseMessage())

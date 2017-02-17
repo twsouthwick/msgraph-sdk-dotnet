@@ -7,24 +7,21 @@
 // -- Use the template at the bottom of this file.  Make sure to create test file per test method and then delete your resource.
 // -- Add worksheets to Requests\Functional\Resources\excelTestResource to target for your test case. Do not touch existing sheets.
 
-namespace Microsoft.Graph.Test.Requests.Functional
-{
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Newtonsoft.Json.Linq;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using System;
+using Microsoft.Graph;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
 
-    /// <summary>
-    /// The tests in this class cover the Excel REST API.
-    /// </summary>
-    [Ignore]
-    [TestClass]
+namespace Microsoft.Graph.DotnetCore.Test.Requests.Functional
+{
     public class ExcelTests : GraphTestBase
     {
         private string fileId;
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task OneDriveCreateDeleteExcelWorkbook()
         {
             try
@@ -36,7 +33,7 @@ namespace Microsoft.Graph.Test.Requests.Functional
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
@@ -53,13 +50,13 @@ namespace Microsoft.Graph.Test.Requests.Functional
                         continue;
                     else
                     {
-                        Assert.Fail("Test cleanup is not removing the test Excel file from the test tenant. Please check the cleanup code.");
+                        Assert.True(false, "Test cleanup is not removing the test Excel file from the test tenant. Please check the cleanup code.");
                     }
                 }
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
@@ -77,7 +74,7 @@ namespace Microsoft.Graph.Test.Requests.Functional
                 // https://graph.microsoft.io/en-us/docs/api-reference/v1.0/api/item_search
                 var excelWorkbookDriveItem = await graphClient.Me.Drive.Root.Children.Request().AddAsync(excelWorkbook);
 
-                Assert.IsNotNull(excelWorkbookDriveItem, "The OneDrive file was not created.");
+                Assert.NotNull(excelWorkbookDriveItem);
 
                 return excelWorkbookDriveItem.Id;
             }
@@ -85,11 +82,11 @@ namespace Microsoft.Graph.Test.Requests.Functional
             {
                 if (e.Error.Code == "nameAlreadyExists")
                 {
-                    Assert.Fail("Error code: {0}, message: {1}", e.Error.Code, e.Error.Message);
+                    Assert.True(false, "Error code: " + e.Error.Code + ", message: " + e.Error.Message);
                 }
                 else
                 {
-                    Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                    Assert.True(false, "Something happened. Error code: " + e.Error.Code);
                 }
             }
 
@@ -98,23 +95,23 @@ namespace Microsoft.Graph.Test.Requests.Functional
 
         public async Task OneDriveUploadTestFileContent(string fileId)
         {
-            try
-            {
-                DriveItem excelDriveItem;
-                var excelBuff = Microsoft.Graph.Test.Properties.Resources.excelTestResource;
-                using (System.IO.MemoryStream ms = new System.IO.MemoryStream(excelBuff))
-                {
-                    // Upload content to the file.
-                    // https://graph.microsoft.io/en-us/docs/api-reference/v1.0/api/item_uploadcontent
-                    excelDriveItem = await graphClient.Me.Drive.Items[fileId].Content.Request().PutAsync<DriveItem>(ms);
-                }
+            //try
+            //{
+            //    DriveItem excelDriveItem;
+            //    var excelBuff = Microsoft.Graph.DotnetCore.Test.Properties.Resources.excelTestResource;
+            //    using (System.IO.MemoryStream ms = new System.IO.MemoryStream(excelBuff))
+            //    {
+            //        Upload content to the file.
+            //        https://graph.microsoft.io/en-us/docs/api-reference/v1.0/api/item_uploadcontent
+            //        excelDriveItem = await graphClient.Me.Drive.Items[fileId].Content.Request().PutAsync<DriveItem>(ms);
+            //    }
 
-                Assert.IsNotNull(excelDriveItem, "The Excel file contents weren't uploaded.");
-            }
-            catch (Microsoft.Graph.ServiceException e)
-            {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
-            }
+            //    Assert.NotNull(excelDriveItem);
+            //}
+            //catch (Microsoft.Graph.ServiceException e)
+            //{
+            //    Assert.True(false, "Something happened. Error code: " + e.Error.Code);
+            //}
         }
 
         public async Task OneDriveDeleteTestFile(string fileId, int delayInMilliseconds = 0)
@@ -145,13 +142,13 @@ namespace Microsoft.Graph.Test.Requests.Functional
             catch (Microsoft.Graph.ServiceException e)
             {
                 if (e.Error.Code == "resourceModified")
-                    Assert.Fail("Error code: {0}, message: {1}", e.Error.Code, e.Error.Message);
+                    Assert.True(false, "Error code: " + e.Error.Code + ", message: " + e.Error.Message);
                 else
-                    Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                    Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task ExcelGetUpdateRange()
         {
             try
@@ -184,19 +181,19 @@ namespace Microsoft.Graph.Test.Requests.Functional
                                                               .Request()
                                                               .PatchAsync(dummyWorkbookRange);
 
-                Assert.IsNotNull(workbookRange, "The PATCH request did not result in a valid WorkbookRange object.");
-                Assert.IsTrue(workbookRange.Values.ToString() == dummyWorkbookRange.Values.ToString(), "The sent range values didn't match the returned values.");
-                Assert.IsTrue(workbookRange.Text.ToString() == workbookRange.Values.ToString(), "The WorkbookRange text is not equal to the value.");
+                Assert.NotNull(workbookRange);
+                Assert.True(workbookRange.Values.ToString() == dummyWorkbookRange.Values.ToString());
+                Assert.True(workbookRange.Text.ToString() == workbookRange.Values.ToString());
 
                 await OneDriveDeleteTestFile(excelFileId, 5000);
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task ExcelChangeNumberFormat()
         {
             try
@@ -220,18 +217,18 @@ namespace Microsoft.Graph.Test.Requests.Functional
                                                               .Request()
                                                               .PatchAsync(dummyWorkbookRange);
 
-                Assert.IsNotNull(workbookRange, "The WorkbookRange object wasn't successfully returned. Check the request.");
-                Assert.IsTrue(arr.ToString() == workbookRange.NumberFormat.ToString(), "The set value wasn't returned in the response.");
+                Assert.NotNull(workbookRange);
+                Assert.True(arr.ToString() == workbookRange.NumberFormat.ToString());
 
                 await OneDriveDeleteTestFile(excelFileId, 3000);
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task ExcelAbsFunc()
         {
             try
@@ -244,18 +241,18 @@ namespace Microsoft.Graph.Test.Requests.Functional
 
                 var workbookFunctionResult = await graphClient.Me.Drive.Items[excelFileId].Workbook.Functions.Abs(inputNumber).Request().PostAsync();
 
-                Assert.IsNotNull(workbookFunctionResult, "Unexpected null entity returned by PostAsync().");
-                Assert.AreEqual("10", workbookFunctionResult.Value.ToString(), "The expected result wasn't returned. Abs function is sad.");
+                Assert.NotNull(workbookFunctionResult);
+                Assert.Equal("10", workbookFunctionResult.Value.ToString());
 
                 await OneDriveDeleteTestFile(excelFileId, 3000);
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task ExcelSetFormula()
         {
             try
@@ -277,18 +274,18 @@ namespace Microsoft.Graph.Test.Requests.Functional
                                                               .Request()
                                                               .PatchAsync(dummyWorkbookRange);
 
-                Assert.IsNotNull(workbookRange, "The WorkbookRange object wasn't successfully returned. Check the request.");
-                Assert.IsTrue(arr.ToString() == workbookRange.Formulas.ToString(), "The set value wasn't returned in the response.");
+                Assert.NotNull(workbookRange);
+                Assert.True(arr.ToString() == workbookRange.Formulas.ToString());
 
                 await OneDriveDeleteTestFile(excelFileId, 5000);
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task ExcelAddTableUsedRange()
         {
             try
@@ -323,17 +320,17 @@ namespace Microsoft.Graph.Test.Requests.Functional
                                                               .Request()
                                                               .PostAsync();
 
-                Assert.IsNotNull(workbookTable, "The WorkbookTable object wasn't successfully returned. Check the request.");
+                Assert.NotNull(workbookTable);
 
                 await OneDriveDeleteTestFile(excelFileId, 3000);
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task ExcelAddRowToTable()
         {
             try
@@ -356,17 +353,17 @@ namespace Microsoft.Graph.Test.Requests.Functional
                                                                  .Request()
                                                                  .AddAsync(newWorkbookTableRow);
 
-                Assert.IsNotNull(workbookTableRow, "The WorkbookTableRow object wasn't successfully returned. Check the request.");
+                Assert.NotNull(workbookTableRow);
 
                 await OneDriveDeleteTestFile(excelFileId, 3000);
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task ExcelSortTableOnFirstColumnValue()
         {
             try
@@ -395,11 +392,11 @@ namespace Microsoft.Graph.Test.Requests.Functional
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task ExcelFilterTableValues()
         {
             try
@@ -421,11 +418,11 @@ namespace Microsoft.Graph.Test.Requests.Functional
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task ExcelCreateChartFromTable()
         {
             try
@@ -454,11 +451,11 @@ namespace Microsoft.Graph.Test.Requests.Functional
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened. Error code: " + e.Error.Code);
             }
         }
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task ExcelProtectWorksheet()
         {
             string excelFileId = "";
@@ -492,7 +489,7 @@ namespace Microsoft.Graph.Test.Requests.Functional
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.AreEqual("AccessDenied", e.Error.Code, true, "The expected AccessDenied error code was not returned.");
+                Assert.Equal("AccessDenied", e.Error.Code, true);
             }
 
             try
@@ -510,7 +507,7 @@ namespace Microsoft.Graph.Test.Requests.Functional
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("The unprotect call failed to remove protection from the worksheet. Error code: {0}", e.Error.Code);
+                Assert.True(false, "The unprotect call failed to remove protection from the worksheet. Error code: " + e.Error.Code);
             }
         }
 

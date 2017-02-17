@@ -1,16 +1,19 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.Requests
-{
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
 
-    [TestClass]
+namespace Microsoft.Graph.DotnetCore.Core.Test.Requests
+{
     public class BaseRequestBuilderTests
     {
-        [TestMethod]
+        [Fact]
         public void BaseRequestBuilder()
         {
             var requestUrl = "https://localhost";
@@ -18,11 +21,11 @@ namespace Microsoft.Graph.Core.Test.Requests
 
             var requestBuilder = new BaseRequestBuilder(requestUrl, client);
 
-            Assert.AreEqual(requestUrl, requestBuilder.RequestUrl, "Unexpected request URL initialized.");
-            Assert.AreEqual(client, requestBuilder.Client, "Unexpected client initialized.");
+            Assert.Equal(requestUrl, requestBuilder.RequestUrl);
+            Assert.Equal(client, requestBuilder.Client);
         }
 
-        [TestMethod]
+        [Fact]
         public void AppendSegmentToRequestUrl()
         {
             var requestUrl = "https://localhost";
@@ -32,7 +35,7 @@ namespace Microsoft.Graph.Core.Test.Requests
 
             var appendedUrl = requestBuilder.AppendSegmentToRequestUrl(newUrlSegment);
 
-            Assert.AreEqual(string.Join("/", requestUrl, newUrlSegment), appendedUrl, "Unexpected appended URL returned.");
+            Assert.Equal(string.Join("/", requestUrl, newUrlSegment), appendedUrl);
         }
     }
 }

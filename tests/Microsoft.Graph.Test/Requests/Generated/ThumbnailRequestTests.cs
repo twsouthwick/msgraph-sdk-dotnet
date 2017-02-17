@@ -1,34 +1,33 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Test.Requests.Generated
+using Microsoft.Graph;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Test.Requests.Generated
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-
-    using Microsoft.Graph;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
-    [TestClass]
     public class ThumbnailRequestTests : RequestTestBase
     {
-        [TestMethod]
+        [Fact]
         public void ThumbnailContentStreamRequest_RequestBuilder()
         {
             var expectedRequestUri = new Uri(string.Format(Constants.Url.GraphBaseUrlFormatString, "v1.0") + "/me/drive/items/id/thumbnails/0/id/content");
             var thumbnailContentRequestBuilder = this.graphServiceClient.Me.Drive.Items["id"].Thumbnails["0"]["id"].Content as ThumbnailContentRequestBuilder;
 
-            Assert.IsNotNull(thumbnailContentRequestBuilder, "Unexpected request builder.");
-            Assert.AreEqual(expectedRequestUri, new Uri(thumbnailContentRequestBuilder.RequestUrl), "Unexpected request URL.");
+            Assert.NotNull(thumbnailContentRequestBuilder);
+            Assert.Equal(expectedRequestUri, new Uri(thumbnailContentRequestBuilder.RequestUrl));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ThumbnailContentStreamRequest_GetAsync()
         {
             using (var httpResponseMessage = new HttpResponseMessage())
@@ -48,18 +47,18 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
                 using (var response = await this.graphServiceClient.Me.Drive.Items["id"].Thumbnails["0"]["id"].Content.Request().GetAsync())
                 {
-                    Assert.IsNotNull(response, "Response stream not returned.");
+                    Assert.NotNull(response);
 
                     using (var streamReader = new StreamReader(response))
                     {
                         var responseString = await streamReader.ReadToEndAsync();
-                        Assert.AreEqual("body", responseString, "Unexpected response returned.");
+                        Assert.Equal("body", responseString);
                     }
                 }
             }
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ThumbnailContentStreamRequest_PutAsync()
         {
             using (var requestStream = new MemoryStream())
@@ -87,22 +86,22 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
                 var responseThumbnail = await this.graphServiceClient.Me.Drive.Items["id"].Thumbnails["0"]["id"].Content.Request().PutAsync<Thumbnail>(requestStream);
 
-                Assert.IsNotNull(responseThumbnail, "Thumbnail not returned.");
-                Assert.AreEqual(expectedThumbnail, responseThumbnail, "Unexpected thumbnail returned.");
+                Assert.NotNull(responseThumbnail);
+                Assert.Equal(expectedThumbnail, responseThumbnail);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ThumbnailSetExtensions_AdditionalDataNull()
         {
             var thumbnailSet = new ThumbnailSet();
 
             var thumbnail = thumbnailSet["custom"];
 
-            Assert.IsNull(thumbnail, "Unexpected thumbnail returned.");
+            Assert.Null(thumbnail);
         }
 
-        [TestMethod]
+        [Fact]
         public void ThumbnailSetExtensions_CustomThumbnail()
         {
             var expectedThumbnail = new Thumbnail { Url = "https://localhost" };
@@ -116,11 +115,11 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
             var thumbnail = thumbnailSet["custom"];
 
-            Assert.IsNotNull(thumbnail, "Custom thumbnail not returned.");
-            Assert.AreEqual(expectedThumbnail.Url, thumbnail.Url, "Unexpected thumbnail returned.");
+            Assert.NotNull(thumbnail);
+            Assert.Equal(expectedThumbnail.Url, thumbnail.Url);
         }
 
-        [TestMethod]
+        [Fact]
         public void ThumbnailSetExtensions_CustomThumbnailNotFound()
         {
             var expectedThumbnail = new Thumbnail { Url = "https://localhost" };
@@ -134,7 +133,7 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
             var thumbnail = thumbnailSet["custom2"];
 
-            Assert.IsNull(thumbnail, "Unexpected thumbnail returned.");
+            Assert.Null(thumbnail);
         }
     }
 }

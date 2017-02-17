@@ -1,43 +1,43 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Test.Requests.Generated
+using Microsoft.Graph;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Test.Requests.Generated
 {
-    using System;
-    using System.IO;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-
-    using Microsoft.Graph;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
-    [TestClass]
     public class EntityWithReferenceRequestTests : RequestTestBase
     {
         /// <summary>
         /// Tests building a request for an entity that has a $ref navigation.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void BuildRequest()
         {
             var expectedRequestUri = new Uri(string.Format(Constants.Url.GraphBaseUrlFormatString, "v1.0") + "/me/manager");
             var managerRequestBuilder = this.graphServiceClient.Me.Manager as DirectoryObjectWithReferenceRequestBuilder;
 
-            Assert.IsNotNull(managerRequestBuilder, "Unexpected request builder.");
-            Assert.AreEqual(expectedRequestUri, new Uri(managerRequestBuilder.RequestUrl), "Unexpected request URL.");
+            Assert.NotNull(managerRequestBuilder);
+            Assert.Equal(expectedRequestUri, new Uri(managerRequestBuilder.RequestUrl));
 
             var namagerRequest = managerRequestBuilder.Request() as DirectoryObjectWithReferenceRequest;
-            Assert.IsNotNull(namagerRequest, "Unexpected request.");
-            Assert.AreEqual(expectedRequestUri, new Uri(namagerRequest.RequestUrl), "Unexpected request URL.");
+            Assert.NotNull(namagerRequest);
+            Assert.Equal(expectedRequestUri, new Uri(namagerRequest.RequestUrl));
         }
 
         /// <summary>
         /// Tests the GetAsync() method on an entity that has a $ref navigation.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task GetAsync()
         {
             using (var httpResponseMessage = new HttpResponseMessage())
@@ -65,7 +65,7 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
                 var returnedManager = await this.graphServiceClient.Me.Manager.Request().GetAsync();
 
-                Assert.AreEqual(expectedManager, returnedManager, "Unexpected manager returned.");
+                Assert.Equal(expectedManager, returnedManager);
             }
         }
 
@@ -73,18 +73,18 @@ namespace Microsoft.Graph.Test.Requests.Generated
         /// <summary>
         /// Tests the Expand() method on the request for an entity with a $ref navigation.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Expand()
         {
             var expectedRequestUrl = string.Format("{0}/me/manager", this.graphBaseUrl);
 
             var managerRequest = this.graphServiceClient.Me.Manager.Request().Expand("value") as DirectoryObjectWithReferenceRequest;
 
-            Assert.IsNotNull(managerRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(managerRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, managerRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$expand", managerRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("value", managerRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(managerRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(managerRequest.RequestUrl));
+            Assert.Equal(1, managerRequest.QueryOptions.Count);
+            Assert.Equal("$expand", managerRequest.QueryOptions[0].Name);
+            Assert.Equal("value", managerRequest.QueryOptions[0].Value);
         }
 #endif
 
@@ -92,18 +92,18 @@ namespace Microsoft.Graph.Test.Requests.Generated
         /// <summary>
         /// Tests the Select() method on the request for an entity with a $ref navigation.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Select()
         {
             var expectedRequestUrl = string.Format("{0}/me/manager", this.graphBaseUrl);
 
             var managerRequest = this.graphServiceClient.Me.Manager.Request().Select("value") as DirectoryObjectWithReferenceRequest;
 
-            Assert.IsNotNull(managerRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(managerRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, managerRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$select", managerRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("value", managerRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(managerRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(managerRequest.RequestUrl));
+            Assert.Equal(1, managerRequest.QueryOptions.Count);
+            Assert.Equal("$select", managerRequest.QueryOptions[0].Name);
+            Assert.Equal("value", managerRequest.QueryOptions[0].Value);
         }
 #endif
     }

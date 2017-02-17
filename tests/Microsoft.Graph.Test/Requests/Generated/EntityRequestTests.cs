@@ -1,25 +1,24 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Test.Requests.Generated
+using Microsoft.Graph;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Test.Requests.Generated
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Net;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-
-    using Microsoft.Graph;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
-    [TestClass]
     public class EntityRequestTests : RequestTestBase
     {
-        [TestMethod]
+        [Fact]
         public async Task GetAsync_InitializeCollectionProperties()
         {
             using (var httpResponseMessage = new HttpResponseMessage())
@@ -57,18 +56,18 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
                 var item = await this.graphServiceClient.Me.Drive.Items["id"].Request().GetAsync();
 
-                Assert.IsNotNull(item, "DriveItem not returned.");
-                Assert.IsNotNull(item.Children, "DriveItem children not returned.");
-                Assert.AreEqual(1, item.Children.CurrentPage.Count, "Unexpected number of children in page.");
-                Assert.AreEqual("id", item.Children.CurrentPage[0].Id, "Unexpected child ID in page.");
-                Assert.AreEqual(expectedItemResponse.AdditionalData, item.Children.AdditionalData, "Additional data not initialized correctly.");
+                Assert.NotNull(item);
+                Assert.NotNull(item.Children);
+                Assert.Equal(1, item.Children.CurrentPage.Count);
+                Assert.Equal("id", item.Children.CurrentPage[0].Id);
+                Assert.Equal(expectedItemResponse.AdditionalData, item.Children.AdditionalData);
                 var nextPageRequest = item.Children.NextPageRequest as DriveItemChildrenCollectionRequest;
-                Assert.IsNotNull(nextPageRequest, "Children next page request not initialized correctly.");
-                Assert.AreEqual(new Uri(requestUrl + "/next"), new Uri(nextPageRequest.RequestUrl), "Unexpected request URL for next page request.");
+                Assert.NotNull(nextPageRequest);
+                Assert.Equal(new Uri(requestUrl + "/next"), new Uri(nextPageRequest.RequestUrl));
             }
         }
 
-        [TestMethod]
+        [Fact]
         public async Task DeleteAsync()
         {
             using (var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.NoContent))
@@ -88,33 +87,33 @@ namespace Microsoft.Graph.Test.Requests.Generated
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void Expand()
         {
             var expectedRequestUri = new Uri(string.Format(Constants.Url.GraphBaseUrlFormatString, "v1.0") + "/me/drive/items/id");
             var itemRequest = this.graphServiceClient.Me.Drive.Items["id"].Request().Expand("value") as DriveItemRequest;
 
-            Assert.IsNotNull(itemRequest, "Unexpected request.");
-            Assert.AreEqual(expectedRequestUri, new Uri(itemRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, itemRequest.QueryOptions.Count, "Unexpected query options present.");
-            Assert.AreEqual("$expand", itemRequest.QueryOptions[0].Name, "Unexpected expand query name.");
-            Assert.AreEqual("value", itemRequest.QueryOptions[0].Value, "Unexpected expand query value.");
+            Assert.NotNull(itemRequest);
+            Assert.Equal(expectedRequestUri, new Uri(itemRequest.RequestUrl));
+            Assert.Equal(1, itemRequest.QueryOptions.Count);
+            Assert.Equal("$expand", itemRequest.QueryOptions[0].Name);
+            Assert.Equal("value", itemRequest.QueryOptions[0].Value);
         }
 
-        [TestMethod]
+        [Fact]
         public void Select()
         {
             var expectedRequestUri = new Uri(string.Format(Constants.Url.GraphBaseUrlFormatString, "v1.0") + "/me/drive/items/id");
             var itemRequest = this.graphServiceClient.Me.Drive.Items["id"].Request().Select("value") as DriveItemRequest;
 
-            Assert.IsNotNull(itemRequest, "Unexpected request.");
-            Assert.AreEqual(expectedRequestUri, new Uri(itemRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, itemRequest.QueryOptions.Count, "Unexpected query options present.");
-            Assert.AreEqual("$select", itemRequest.QueryOptions[0].Name, "Unexpected select query name.");
-            Assert.AreEqual("value", itemRequest.QueryOptions[0].Value, "Unexpected select query value.");
+            Assert.NotNull(itemRequest);
+            Assert.Equal(expectedRequestUri, new Uri(itemRequest.RequestUrl));
+            Assert.Equal(1, itemRequest.QueryOptions.Count);
+            Assert.Equal("$select", itemRequest.QueryOptions[0].Name);
+            Assert.Equal("value", itemRequest.QueryOptions[0].Value);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UpdateAsync_EntityWithNoCollecitonProperties()
         {
             using (var httpResponseMessage = new HttpResponseMessage())
@@ -142,16 +141,16 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
                 var contactResponse = await this.graphServiceClient.Me.Contacts["id"].Request().UpdateAsync(contactToUpdate);
 
-                Assert.AreEqual(contactToUpdate, contactResponse, "Unexpected item returned.");
+                Assert.Equal(contactToUpdate, contactResponse);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UpdateAsync()
         {
             await this.RequestWithItemInBody(true);
         }
-        
+
         private async Task RequestWithItemInBody(bool isUpdate)
         {
             using (var httpResponseMessage = new HttpResponseMessage())
@@ -179,7 +178,7 @@ namespace Microsoft.Graph.Test.Requests.Generated
                     ? await this.graphServiceClient.Me.Drive.Items["id"].Request().UpdateAsync(new DriveItem())
                     : await this.graphServiceClient.Me.Drive.Items["id"].Request().CreateAsync(new DriveItem());
 
-                Assert.AreEqual("id", itemResponse.Id, "Unexpected item returned.");
+                Assert.Equal("id", itemResponse.Id);
             }
         }
     }

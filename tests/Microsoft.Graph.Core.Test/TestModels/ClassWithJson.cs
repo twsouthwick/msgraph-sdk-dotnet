@@ -2,18 +2,21 @@
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.TestModels
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+namespace Microsoft.Graph.DotnetCore.Core.Test.TestModels
 {
-    using System.Collections.Generic;
-    using System.Runtime.Serialization;
-
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-
     /// <summary>
     /// A property bag class with no default constructor for unit testing purposes.
     /// </summary>
-    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+    [DataContract]
     public class ClassWithJson
     {
         public ClassWithJson()
@@ -23,7 +26,7 @@ namespace Microsoft.Graph.Core.Test.TestModels
         /// <summary>
         /// Gets or sets id.
         /// </summary>
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore, PropertyName = "data", Required = Required.Default)]
+        [DataMember(Name = "data", EmitDefaultValue = false, IsRequired = false)]
         public JToken Data { get; set; }
 
         /// <summary>

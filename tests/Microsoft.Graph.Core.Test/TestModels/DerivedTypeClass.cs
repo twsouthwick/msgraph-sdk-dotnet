@@ -2,29 +2,33 @@
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.TestModels
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
+
+using Newtonsoft.Json;
+
+namespace Microsoft.Graph.DotnetCore.Core.Test.TestModels
 {
-    using System.Runtime.Serialization;
-
-    using Newtonsoft.Json;
-
     /// <summary>
     /// A property bag class for testing derived type deserialization.
     /// </summary>
     [JsonConverter(typeof(DerivedTypeConverter))]
-    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+    [DataContract]
     public class DerivedTypeClass : AbstractEntityType
     {
         /// <summary>
         /// Gets or sets enumType.
         /// </summary>
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore, PropertyName = "enumType", Required = Required.Default)]
+        [DataMember(Name = "enumType", EmitDefaultValue = false, IsRequired = false)]
         public EnumType? EnumType { get; set; }
 
         /// <summary>
         /// Gets or sets id.
         /// </summary>
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore, PropertyName = "name", Required = Required.Default)]
+        [DataMember(Name = "name", EmitDefaultValue = false, IsRequired = false)]
         public string Name { get; set; }
     }
 }

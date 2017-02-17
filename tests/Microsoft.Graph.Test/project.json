@@ -4,7 +4,7 @@
   "dependencies": {
     "xunit": "2.2.0-beta5-build3474",
     "dotnet-test-xunit": "2.2.0-preview2-build1029",
-    "Microsoft.Graph.DotnetCore.Core.Test": "1.0.0-*",
+    "Microsoft.Graph.Core.Test": "1.0.0-*",
     "Microsoft.Graph.Core": {
       "target": "project"
     },

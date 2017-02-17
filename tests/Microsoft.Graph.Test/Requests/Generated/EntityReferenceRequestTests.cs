@@ -1,44 +1,43 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Test.Requests.Generated
+using Microsoft.Graph;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Test.Requests.Generated
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-
-    using Microsoft.Graph;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
-    [TestClass]
     public class EntityReferenceRequestTests : RequestTestBase
     {
         /// <summary>
         /// Tests building a request for an entity's $ref navigation.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void BuildRequest()
         {
             var expectedRequestUri = new Uri(string.Format(Constants.Url.GraphBaseUrlFormatString, "v1.0") + "/groups/groupId/members/memberId/$ref");
             var memberReferenceRequestBuilder = this.graphServiceClient.Groups["groupId"].Members["memberId"].Reference as DirectoryObjectReferenceRequestBuilder;
 
-            Assert.IsNotNull(memberReferenceRequestBuilder, "Unexpected request builder.");
-            Assert.AreEqual(expectedRequestUri, new Uri(memberReferenceRequestBuilder.RequestUrl), "Unexpected request URL.");
+            Assert.NotNull(memberReferenceRequestBuilder);
+            Assert.Equal(expectedRequestUri, new Uri(memberReferenceRequestBuilder.RequestUrl));
 
             var memberReferenceRequest = memberReferenceRequestBuilder.Request() as DirectoryObjectReferenceRequest;
-            Assert.IsNotNull(memberReferenceRequest, "Unexpected request.");
-            Assert.AreEqual(expectedRequestUri, new Uri(memberReferenceRequest.RequestUrl), "Unexpected request URL.");
+            Assert.NotNull(memberReferenceRequest);
+            Assert.Equal(expectedRequestUri, new Uri(memberReferenceRequest.RequestUrl));
         }
 
         /// <summary>
         /// Tests the DeleteAsync() method on an entity's $ref navigation.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task DeleteAsync()
         {
             using (var httpResponseMessage = new HttpResponseMessage())

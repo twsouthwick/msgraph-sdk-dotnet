@@ -1,72 +1,68 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.Serialization
-{
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using TestModels;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+using Microsoft.Graph.DotnetCore.Core.Test.TestModels;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Xunit;
 
-    [TestClass]
+namespace Microsoft.Graph.DotnetCore.Core.Test.Serialization
+{
     public class SerializerTests
     {
         private Serializer serializer;
 
-        [TestInitialize]
-        public void Setup()
+        public SerializerTests()
         {
             this.serializer = new Serializer();
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public void AbstractClassDeserializationFailure()
         {
             var stringToDeserialize = "{\"jsonKey\":\"jsonValue\"}";
 
             try
             {
-                this.serializer.DeserializeObject<AbstractClass>(stringToDeserialize);
+                Assert.Throws<ServiceException>( () => this.serializer.DeserializeObject<AbstractClass>(stringToDeserialize));
             }
             catch (ServiceException exception)
             {
-                Assert.IsTrue(exception.IsMatch(ErrorConstants.Codes.GeneralException), "Unexpected error code thrown.");
-                Assert.AreEqual(
+                Assert.True(exception.IsMatch(ErrorConstants.Codes.GeneralException));
+                Assert.Equal(
                     string.Format(ErrorConstants.Messages.UnableToCreateInstanceOfTypeFormatString, typeof(AbstractClass).FullName),
-                    exception.Error.Message,
-                    "Unexpected error message thrown.");
+                    exception.Error.Message);
 
                 throw;
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeDerivedType()
         {
             var id = "id";
             var name = "name";
 
             var stringToDeserialize = string.Format(
-                "{{\"id\":\"{0}\", \"@odata.type\":\"#microsoft.graph.core.test.testModels.derivedTypeClass\", \"name\":\"{1}\"}}",
+                "{{\"id\":\"{0}\", \"@odata.type\":\"#microsoft.graph.dotnetCore.core.test.testModels.derivedTypeClass\", \"name\":\"{1}\"}}",
                 id,
                 name);
 
             var derivedType = this.serializer.DeserializeObject<AbstractEntityType>(stringToDeserialize) as DerivedTypeClass;
 
-            Assert.IsNotNull(derivedType, "Object not correctly deserialized.");
-            Assert.AreEqual(id, derivedType.Id, "Unexpected ID initialized.");
-            Assert.AreEqual(name, derivedType.Name, "Unexpected name initialized.");
+            Assert.NotNull(derivedType);
+            Assert.Equal(id, derivedType.Id);
+            Assert.Equal(name, derivedType.Name);
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeInvalidODataType()
         {
             var id = "id";
@@ -79,13 +75,13 @@ namespace Microsoft.Graph.Core.Test.Serialization
 
             var instance = this.serializer.DeserializeObject<DerivedTypeClass>(stringToDeserialize);
 
-            Assert.IsNotNull(instance, "Object not correctly deserialized.");
-            Assert.AreEqual(id, instance.Id, "Unexpected ID initialized.");
-            Assert.IsNotNull(instance.AdditionalData, "Additional data not initialized.");
-            Assert.AreEqual(givenName, instance.AdditionalData["givenName"] as string, "Unexpected additional data initialized.");
+            Assert.NotNull(instance);
+            Assert.Equal(id, instance.Id);
+            Assert.NotNull(instance.AdditionalData);
+            Assert.Equal(givenName, instance.AdditionalData["givenName"] as string);
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeStream()
         {
             var id = "id";
@@ -96,13 +92,13 @@ namespace Microsoft.Graph.Core.Test.Serialization
             {
                 var instance = this.serializer.DeserializeObject<DerivedTypeClass>(serializedStream);
 
-                Assert.IsNotNull(instance, "Object not correctly deserialized.");
-                Assert.AreEqual(id, instance.Id, "Unexpected ID initialized.");
-                Assert.IsNull(instance.AdditionalData, "Unexpected additional data initialized.");
+                Assert.NotNull(instance);
+                Assert.Equal(id, instance.Id);
+                Assert.Null(instance.AdditionalData);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeUnknownEnumValue()
         {
             var enumValue = "newValue";
@@ -115,38 +111,36 @@ namespace Microsoft.Graph.Core.Test.Serialization
 
             var instance = this.serializer.DeserializeObject<DerivedTypeClass>(stringToDeserialize);
 
-            Assert.IsNotNull(instance, "Object not correctly deserialized.");
-            Assert.AreEqual(id, instance.Id, "Unexpected ID initialized.");
-            Assert.IsNull(instance.EnumType, "Unexpected EnumType initialized.");
-            Assert.IsNotNull(instance.AdditionalData, "Additional data not initialized.");
-            Assert.AreEqual(enumValue, instance.AdditionalData["enumType"] as string, "EnumType not set in additional data.");
+            Assert.NotNull(instance);
+            Assert.Equal(id, instance.Id);
+            Assert.Null(instance.EnumType);
+            Assert.NotNull(instance.AdditionalData);
+            Assert.Equal(enumValue, instance.AdditionalData["enumType"] as string);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public void DerivedTypeWithoutDefaultConstructor()
         {
             var stringToDeserialize = "{\"jsonKey\":\"jsonValue\"}";
 
             try
             {
-                this.serializer.DeserializeObject<NoDefaultConstructor>(stringToDeserialize);
+                Assert.Throws<ServiceException>(() => this.serializer.DeserializeObject<NoDefaultConstructor>(stringToDeserialize));
             }
             catch (ServiceException exception)
             {
-                Assert.IsTrue(exception.IsMatch(ErrorConstants.Codes.GeneralException), "Unexpected error code thrown.");
-                Assert.AreEqual(
+                Assert.True(exception.IsMatch(ErrorConstants.Codes.GeneralException));
+                Assert.Equal(
                     string.Format(
                         ErrorConstants.Messages.UnableToCreateInstanceOfTypeFormatString,
                         typeof(NoDefaultConstructor).AssemblyQualifiedName),
-                    exception.Error.Message,
-                    "Unexpected error message thrown.");
+                    exception.Error.Message);
 
                 throw;
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeDateEnumerableValue()
         {
             var now = DateTimeOffset.UtcNow;
@@ -156,23 +150,22 @@ namespace Microsoft.Graph.Core.Test.Serialization
 
             var deserializedObject = this.serializer.DeserializeObject<DateTestClass>(stringToDeserialize);
 
-            Assert.AreEqual(2, deserializedObject.DateCollection.Count(), "Unexpected number of dates deserialized.");
-            Assert.IsTrue(deserializedObject.DateCollection.Any(
+            Assert.Equal(2, deserializedObject.DateCollection.Count());
+            Assert.True(deserializedObject.DateCollection.Any(
                  date =>
                     date.Year == now.Year &&
                     date.Month == now.Month &&
                     date.Day == now.Day),
                 "Now date not found.");
 
-            Assert.IsTrue(deserializedObject.DateCollection.Any(
+            Assert.True(deserializedObject.DateCollection.Any(
                 date =>
                     date.Year == tomorrow.Year &&
                     date.Month == tomorrow.Month &&
-                    date.Day == tomorrow.Day),
-                "Tomorrow date not found.");
+                    date.Day == tomorrow.Day));
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeDateValue()
         {
             var now = DateTimeOffset.UtcNow;
@@ -180,13 +173,13 @@ namespace Microsoft.Graph.Core.Test.Serialization
             var stringToDeserialize = string.Format("{{\"nullableDate\":\"{0}\"}}", now.ToString("yyyy-MM-dd"));
 
             var dateClass = this.serializer.DeserializeObject<DateTestClass>(stringToDeserialize);
-            
-            Assert.AreEqual(now.Year, dateClass.NullableDate.Year, "Unexpected nullableDate year deserialized.");
-            Assert.AreEqual(now.Month, dateClass.NullableDate.Month, "Unexpected nullableDate month deserialized.");
-            Assert.AreEqual(now.Day, dateClass.NullableDate.Day, "Unexpected nullableDate day deserialized.");
+
+            Assert.Equal(now.Year, dateClass.NullableDate.Year);
+            Assert.Equal(now.Month, dateClass.NullableDate.Month);
+            Assert.Equal(now.Day, dateClass.NullableDate.Day);
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeInterface()
         {
             var collectionPage = new CollectionPageInstance
@@ -197,33 +190,31 @@ namespace Microsoft.Graph.Core.Test.Serialization
             var serializedString = this.serializer.SerializeObject(collectionPage);
 
             var deserializedPage = this.serializer.DeserializeObject<ICollectionPageInstance>(serializedString);
-
-            Assert.IsInstanceOfType(deserializedPage, typeof(CollectionPageInstance), "Unexpected object deserialized.");
-            Assert.AreEqual(1, deserializedPage.Count, "Unexpected page deserialized.");
-            Assert.AreEqual("id", deserializedPage[0].Id, "Unexpected page item deserialized.");
+            Assert.IsType(typeof(CollectionPageInstance), deserializedPage);
+            Assert.Equal(1, deserializedPage.Count);
+            Assert.Equal("id", deserializedPage[0].Id);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public void DeserializeInvalidTypeForDateConverter()
         {
             var stringToDeserialize = "{\"invalidType\":1}";
 
             try
             {
-                var date = this.serializer.DeserializeObject<DateTestClass>(stringToDeserialize);
+                 Assert.Throws<ServiceException>(() => this.serializer.DeserializeObject<DateTestClass>(stringToDeserialize));
             }
             catch (ServiceException serviceException)
             {
-                Assert.IsTrue(serviceException.IsMatch(ErrorConstants.Codes.GeneralException), "Unexpected error code thrown.");
-                Assert.AreEqual(ErrorConstants.Messages.UnableToDeserializeDate, serviceException.Error.Message, "Unexpected error message thrown.");
-                Assert.IsInstanceOfType(serviceException.InnerException, typeof(JsonSerializationException), "Unexpected inner exception thrown.");
+                Assert.True(serviceException.IsMatch(ErrorConstants.Codes.GeneralException));
+                Assert.Equal(ErrorConstants.Messages.UnableToDeserializeDate, serviceException.Error.Message);
+                Assert.IsType(typeof(JsonSerializationException), serviceException.InnerException);
 
                 throw;
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void NewAbstractDerivedClassInstance()
         {
             var entityId = "entityId";
@@ -238,13 +229,13 @@ namespace Microsoft.Graph.Core.Test.Serialization
 
             var instance = this.serializer.DeserializeObject<AbstractEntityType>(stringToDeserialize);
 
-            Assert.IsNotNull(instance, "Object not correctly deserialized.");
-            Assert.AreEqual(entityId, instance.Id, "Unexpected ID initialized.");
-            Assert.IsNotNull(instance.AdditionalData, "Additional data not initialized.");
-            Assert.AreEqual(additionalValue, instance.AdditionalData[additionalKey] as string, "Unexpected additional data initialized.");
+            Assert.NotNull(instance);
+            Assert.Equal(entityId, instance.Id);
+            Assert.NotNull(instance.AdditionalData);
+            Assert.Equal(additionalValue, instance.AdditionalData[additionalKey] as string);
         }
 
-        [TestMethod]
+        [Fact]
         public void SerializeAndDeserializeKnownEnumValue()
         {
             var instance = new DerivedTypeClass
@@ -260,23 +251,23 @@ namespace Microsoft.Graph.Core.Test.Serialization
 
             var serializedValue = this.serializer.SerializeObject(instance);
 
-            Assert.AreEqual(expectedSerializedStream, serializedValue, "Unexpected value serialized.");
+            Assert.Equal(expectedSerializedStream, serializedValue);
 
             var newInstance = this.serializer.DeserializeObject<DerivedTypeClass>(serializedValue);
 
-            Assert.IsNotNull(newInstance, "Object not correctly deserialized.");
-            Assert.AreEqual(instance.Id, instance.Id, "Unexpected ID initialized.");
-            Assert.AreEqual(EnumType.Value, instance.EnumType, "Unexpected EnumType initialized.");
-            Assert.IsNull(instance.AdditionalData, "Additional data initialized.");
+            Assert.NotNull(newInstance);
+            Assert.Equal(instance.Id, instance.Id);
+            Assert.Equal(EnumType.Value, instance.EnumType);
+            Assert.Null(instance.AdditionalData);
         }
 
-        [TestMethod]
+        [Fact]
         public void SerializeDateEnumerableValue()
         {
             var now = DateTimeOffset.UtcNow;
             var tomorrow = now.AddDays(1);
 
-            var expectedSerializedString = string.Format("{{\"dateCollection\":[\"{0}\",\"{1}\"]}}", now.ToString("yyyy-MM-dd"), tomorrow.ToString("yyyy-MM-dd"));
+            var expectedSerializedString = string.Format("{{\"nullableDate\":null,\"dateCollection\":[\"{0}\",\"{1}\"]}}", now.ToString("yyyy-MM-dd"), tomorrow.ToString("yyyy-MM-dd"));
 
             var recurrence = new DateTestClass
             {
@@ -284,25 +275,25 @@ namespace Microsoft.Graph.Core.Test.Serialization
             };
 
             var serializedString = this.serializer.SerializeObject(recurrence);
-            
-            Assert.AreEqual(expectedSerializedString, serializedString, "Unexpected value serialized.");
+
+            Assert.Equal(expectedSerializedString, serializedString);
         }
 
-        [TestMethod]
+        [Fact]
         public void SerializeDateNullValue()
         {
             var now = DateTimeOffset.UtcNow;
 
-            var expectedSerializedString = "{}";
+            var expectedSerializedString = "{\"nullableDate\":null}";
 
             var recurrence = new DateTestClass();
 
             var serializedString = this.serializer.SerializeObject(recurrence);
 
-            Assert.AreEqual(expectedSerializedString, serializedString, "Unexpected value serialized.");
+            Assert.Equal(expectedSerializedString, serializedString);
         }
 
-        [TestMethod]
+        [Fact]
         public void SerializeDateValue()
         {
             var now = DateTimeOffset.UtcNow;
@@ -316,11 +307,10 @@ namespace Microsoft.Graph.Core.Test.Serialization
 
             var serializedString = this.serializer.SerializeObject(date);
 
-            Assert.AreEqual(expectedSerializedString, serializedString, "Unexpected value serialized.");
+            Assert.Equal(expectedSerializedString, serializedString);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public void SerializeInvalidTypeForDateConverter()
         {
             var dateToSerialize = new DateTestClass
@@ -330,29 +320,28 @@ namespace Microsoft.Graph.Core.Test.Serialization
 
             try
             {
-                var serializedString = this.serializer.SerializeObject(dateToSerialize);
+                Assert.Throws<ServiceException>(() => this.serializer.SerializeObject(dateToSerialize));
             }
             catch (ServiceException serviceException)
             {
-                Assert.IsTrue(serviceException.IsMatch(ErrorConstants.Codes.GeneralException), "Unexpected error code thrown.");
-                Assert.AreEqual(
+                Assert.True(serviceException.IsMatch(ErrorConstants.Codes.GeneralException));
+                Assert.Equal(
                     ErrorConstants.Messages.InvalidTypeForDateConverter,
-                    serviceException.Error.Message,
-                    "Unexpected error message thrown.");
+                    serviceException.Error.Message);
 
                 throw;
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void VerifyTypeMappingCache()
         {
             // Clear the cache so it won't have mappings from previous tests.
             DerivedTypeConverter.TypeMappingCache.Clear();
 
             var id = "id";
-            var derivedTypeClassTypeString = "microsoft.graph.core.test.testModels.derivedTypeClass";
-            var dateTestClassTypeString = "microsoft.graph.core.test.testModels.dateTestClass";
+            var derivedTypeClassTypeString = "microsoft.graph.dotnetCore.core.test.testModels.derivedTypeClass";
+            var dateTestClassTypeString = "microsoft.graph.dotnetCore.core.test.testModels.dateTestClass";
 
             var deserializeExistingTypeString = string.Format(
                 "{{\"id\":\"{0}\", \"@odata.type\":\"#{1}\"}}",
@@ -375,33 +364,27 @@ namespace Microsoft.Graph.Core.Test.Serialization
 
             var dateTestType = this.serializer.DeserializeObject<DateTestClass>(dateTestTypeString) as DateTestClass;
 
-            Assert.IsNotNull(derivedType, "Unexpected instance returned for derived type instance.");
-            Assert.IsNotNull(derivedType2, "Unexpected instance returned for derived type instance 2.");
-            Assert.IsNotNull(upcastType, "Unexpected instance returned for up cast type.");
-            Assert.IsNotNull(dateTestType, "Unexpected instance returned for date test type.");
+            Assert.NotNull(derivedType);
+            Assert.NotNull(derivedType2);
+            Assert.NotNull(upcastType);
+            Assert.NotNull(dateTestType);
 
-            Assert.AreEqual(3, DerivedTypeConverter.TypeMappingCache.Count, "Unexpected number of entries in type mapping cache.");
+            Assert.Equal(3, DerivedTypeConverter.TypeMappingCache.Count);
 
-            Assert.AreEqual(
+            Assert.Equal(
                 typeof(DerivedTypeClass),
-                DerivedTypeConverter.TypeMappingCache[derivedTypeClassTypeString],
-                "Unexpected type cached for {0}",
-                derivedTypeClassTypeString);
+                DerivedTypeConverter.TypeMappingCache[derivedTypeClassTypeString]);
 
-            Assert.AreEqual(
+            Assert.Equal(
                 typeof(DerivedTypeClass),
-                DerivedTypeConverter.TypeMappingCache["unknown"],
-                "Unexpected type cached for {0}",
-                derivedTypeClassTypeString);
+                DerivedTypeConverter.TypeMappingCache["unknown"]);
 
-            Assert.AreEqual(
+            Assert.Equal(
                 typeof(DateTestClass),
-                DerivedTypeConverter.TypeMappingCache[dateTestClassTypeString],
-                "Unexpected type cached for {0}",
-                dateTestClassTypeString);
+                DerivedTypeConverter.TypeMappingCache[dateTestClassTypeString]);
         }
 
-        [TestMethod]
+        [Fact]
         public void SerializeDeserializeJson()
         {
             var expectedSerializedString = "{\"data\":{\"int\":42,\"float\":3.14,\"str\":\"dude\",\"bool\":true,\"null\":null,\"arr\":[\"sweet\",2.82,43,false]}}";
@@ -424,37 +407,37 @@ namespace Microsoft.Graph.Core.Test.Serialization
             jsCls.Data = obj;
 
             var s = this.serializer.SerializeObject(jsCls);
-            Assert.AreEqual(s, expectedSerializedString);
+            Assert.Equal(s, expectedSerializedString);
 
             var parsedObj = this.serializer.DeserializeObject<ClassWithJson>(s);
             var jsObj = parsedObj.Data;
 
-            Assert.AreEqual(jsObj.Type, JTokenType.Object);
-            Assert.AreEqual(jsObj["int"].Type, JTokenType.Integer);
-            Assert.AreEqual(jsObj["float"].Type, JTokenType.Float);
-            Assert.AreEqual(jsObj["str"].Type, JTokenType.String);
-            Assert.AreEqual(jsObj["bool"].Type, JTokenType.Boolean);
-            Assert.AreEqual(jsObj["null"].Type, JTokenType.Null);
-            Assert.AreEqual(jsObj["arr"].Type, JTokenType.Array);
+            Assert.Equal(jsObj.Type, JTokenType.Object);
+            Assert.Equal(jsObj["int"].Type, JTokenType.Integer);
+            Assert.Equal(jsObj["float"].Type, JTokenType.Float);
+            Assert.Equal(jsObj["str"].Type, JTokenType.String);
+            Assert.Equal(jsObj["bool"].Type, JTokenType.Boolean);
+            Assert.Equal(jsObj["null"].Type, JTokenType.Null);
+            Assert.Equal(jsObj["arr"].Type, JTokenType.Array);
 
-            Assert.AreEqual(jsObj["int"], 42);
-            Assert.AreEqual(jsObj["float"], 3.14);
-            Assert.AreEqual(jsObj["str"], "dude");
-            Assert.AreEqual(jsObj["bool"], true);
-            Assert.AreEqual((jsObj["null"] as JValue).Value, null);
+            Assert.Equal(jsObj["int"], 42);
+            Assert.Equal(jsObj["float"], 3.14);
+            Assert.Equal(jsObj["str"], "dude");
+            Assert.Equal(jsObj["bool"], true);
+            Assert.Equal((jsObj["null"] as JValue).Value, null);
 
             var jsArr = jsObj["arr"] as JArray;
-            Assert.IsNotNull(jsArr);
-            Assert.AreEqual(jsArr.Count, 4);
-            Assert.AreEqual(jsArr[0].Type, JTokenType.String);
-            Assert.AreEqual(jsArr[1].Type, JTokenType.Float);
-            Assert.AreEqual(jsArr[2].Type, JTokenType.Integer);
-            Assert.AreEqual(jsArr[3].Type, JTokenType.Boolean);
+            Assert.NotNull(jsArr);
+            Assert.Equal(jsArr.Count, 4);
+            Assert.Equal(jsArr[0].Type, JTokenType.String);
+            Assert.Equal(jsArr[1].Type, JTokenType.Float);
+            Assert.Equal(jsArr[2].Type, JTokenType.Integer);
+            Assert.Equal(jsArr[3].Type, JTokenType.Boolean);
 
-            Assert.AreEqual(jsArr[0], "sweet");
-            Assert.AreEqual(jsArr[1], 2.82);
-            Assert.AreEqual(jsArr[2], 43);
-            Assert.AreEqual(jsArr[3], false);
+            Assert.Equal(jsArr[0], "sweet");
+            Assert.Equal(jsArr[1], 2.82);
+            Assert.Equal(jsArr[2], 43);
+            Assert.Equal(jsArr[3], false);
         }
     }
 }

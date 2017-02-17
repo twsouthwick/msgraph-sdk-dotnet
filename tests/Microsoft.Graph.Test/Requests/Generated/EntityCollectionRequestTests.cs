@@ -1,44 +1,43 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Test.Requests.Generated
+using Microsoft.Graph;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Test.Requests.Generated
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-
-    using Microsoft.Graph;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
-    [TestClass]
     public class EntityCollectionRequestTests : RequestTestBase
     {
         /// <summary>
         /// Tests building a request for an entity collection.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void BuildRequest()
         {
             var expectedRequestUri = new Uri(string.Format(Constants.Url.GraphBaseUrlFormatString, "v1.0") + "/me/calendars");
             var calendarsCollectionRequestBuilder = this.graphServiceClient.Me.Calendars as UserCalendarsCollectionRequestBuilder;
-            
-            Assert.IsNotNull(calendarsCollectionRequestBuilder, "Unexpected request builder.");
-            Assert.AreEqual(expectedRequestUri, new Uri(calendarsCollectionRequestBuilder.RequestUrl), "Unexpected request URL.");
+
+            Assert.NotNull(calendarsCollectionRequestBuilder);
+            Assert.Equal(expectedRequestUri, new Uri(calendarsCollectionRequestBuilder.RequestUrl));
 
             var calendarsCollectionRequest = calendarsCollectionRequestBuilder.Request() as UserCalendarsCollectionRequest;
-            Assert.IsNotNull(calendarsCollectionRequest, "Unexpected request.");
-            Assert.AreEqual(expectedRequestUri, new Uri(calendarsCollectionRequest.RequestUrl), "Unexpected request URL.");
+            Assert.NotNull(calendarsCollectionRequest);
+            Assert.Equal(expectedRequestUri, new Uri(calendarsCollectionRequest.RequestUrl));
         }
 
         /// <summary>
         /// Tests the GetAsync() method on an entity collection request.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task GetAsync()
         {
             using (var httpResponseMessage = new HttpResponseMessage())
@@ -46,7 +45,7 @@ namespace Microsoft.Graph.Test.Requests.Generated
             using (var streamContent = new StreamContent(responseStream))
             {
                 httpResponseMessage.Content = streamContent;
-                
+
                 var nextQueryKey = "key";
                 var nextQueryValue = "value";
 
@@ -79,27 +78,26 @@ namespace Microsoft.Graph.Test.Requests.Generated
 
                 var returnedCollectionPage = await this.graphServiceClient.Me.Calendars.Request().GetAsync();
 
-                Assert.IsNotNull(returnedCollectionPage, "Collection page not returned.");
-                Assert.AreEqual(calendarsCollectionPage, returnedCollectionPage, "Unexpected collection page returned.");
-                Assert.AreEqual(
+                Assert.NotNull(returnedCollectionPage);
+                Assert.Equal(calendarsCollectionPage, returnedCollectionPage);
+                Assert.Equal(
                     calendarsCollectionResponse.AdditionalData,
-                    returnedCollectionPage.AdditionalData,
-                    "Additional data not initialized on collection page.");
+                    returnedCollectionPage.AdditionalData);
 
                 var nextPageRequest = returnedCollectionPage.NextPageRequest as UserCalendarsCollectionRequest;
 
-                Assert.IsNotNull(nextPageRequest, "Next page request not returned.");
-                Assert.AreEqual(new Uri(requestUrl), new Uri(nextPageRequest.RequestUrl), "Unexpected URL initialized for next page request.");
-                Assert.AreEqual(1, nextPageRequest.QueryOptions.Count, "Unexpected query options initialized.");
-                Assert.AreEqual(nextQueryKey, nextPageRequest.QueryOptions[0].Name, "Unexpected query option name initialized.");
-                Assert.AreEqual(nextQueryValue, nextPageRequest.QueryOptions[0].Value, "Unexpected query option value initialized.");
+                Assert.NotNull(nextPageRequest);
+                Assert.Equal(new Uri(requestUrl), new Uri(nextPageRequest.RequestUrl));
+                Assert.Equal(1, nextPageRequest.QueryOptions.Count);
+                Assert.Equal(nextQueryKey, nextPageRequest.QueryOptions[0].Name);
+                Assert.Equal(nextQueryValue, nextPageRequest.QueryOptions[0].Value);
             }
         }
 
         /// <summary>
         /// Tests the AddAsync() method on an entity collection request.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task AddAsync()
         {
             using (var httpResponseMessage = new HttpResponseMessage())
@@ -107,7 +105,7 @@ namespace Microsoft.Graph.Test.Requests.Generated
             using (var streamContent = new StreamContent(responseStream))
             {
                 httpResponseMessage.Content = streamContent;
-                
+
                 var requestUrl = string.Format("{0}/me/calendars", this.graphBaseUrl);
 
                 this.httpProvider.Setup(
@@ -130,15 +128,15 @@ namespace Microsoft.Graph.Test.Requests.Generated
                     .Returns(addedCalendar);
 
                 var returnedCalendar = await this.graphServiceClient.Me.Calendars.Request().AddAsync(addedCalendar);
-                
-                Assert.AreEqual(addedCalendar, returnedCalendar, "Unexpected calendar returned.");
+
+                Assert.Equal(addedCalendar, returnedCalendar);
             }
         }
 
         /// <summary>
         /// Tests that the AddAsync() method on an abstract entity collection request includes @odata.type.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task AddAsync_AbstractEntityContainsODataType()
         {
             using (var httpResponseMessage = new HttpResponseMessage())
@@ -177,144 +175,144 @@ namespace Microsoft.Graph.Test.Requests.Generated
                     .Request()
                     .AddAsync(attachmentToAdd);
 
-                Assert.AreEqual(attachmentToAdd, returnedAttachment, "Unexpected attachment returned.");
+                Assert.Equal(attachmentToAdd, returnedAttachment);
             }
         }
 
         /// <summary>
         /// Tests the Expand() method on an entity collection request (contactFolders).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Expand()
         {
             var expectedRequestUrl = string.Format("{0}/me/contactFolders", this.graphBaseUrl);
 
             var contactFoldersCollectionRequest = this.graphServiceClient.Me.ContactFolders.Request().Expand("contacts") as UserContactFoldersCollectionRequest;
 
-            Assert.IsNotNull(contactFoldersCollectionRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, contactFoldersCollectionRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$expand", contactFoldersCollectionRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("contacts", contactFoldersCollectionRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(contactFoldersCollectionRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl));
+            Assert.Equal(1, contactFoldersCollectionRequest.QueryOptions.Count);
+            Assert.Equal("$expand", contactFoldersCollectionRequest.QueryOptions[0].Name);
+            Assert.Equal("contacts", contactFoldersCollectionRequest.QueryOptions[0].Value);
         }
 
         /// <summary>
         /// Tests the Expand() method on an entity collection request (contactFolders).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void ExpandExpression()
         {
             var expectedRequestUrl = string.Format("{0}/me/contactFolders", this.graphBaseUrl);
 
             var contactFoldersCollectionRequest = this.graphServiceClient.Me.ContactFolders.Request().Expand(cf => cf.Contacts) as UserContactFoldersCollectionRequest;
 
-            Assert.IsNotNull(contactFoldersCollectionRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, contactFoldersCollectionRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$expand", contactFoldersCollectionRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("contacts", contactFoldersCollectionRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(contactFoldersCollectionRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl));
+            Assert.Equal(1, contactFoldersCollectionRequest.QueryOptions.Count);
+            Assert.Equal("$expand", contactFoldersCollectionRequest.QueryOptions[0].Name);
+            Assert.Equal("contacts", contactFoldersCollectionRequest.QueryOptions[0].Value);
         }
 
         /// <summary>
         /// Tests the Select() method on an entity collection request (contactFolders).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Select()
         {
             var expectedRequestUrl = string.Format("{0}/me/contactFolders", this.graphBaseUrl);
 
             var contactFoldersCollectionRequest = this.graphServiceClient.Me.ContactFolders.Request().Select("value") as UserContactFoldersCollectionRequest;
 
-            Assert.IsNotNull(contactFoldersCollectionRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, contactFoldersCollectionRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$select", contactFoldersCollectionRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("value", contactFoldersCollectionRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(contactFoldersCollectionRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl));
+            Assert.Equal(1, contactFoldersCollectionRequest.QueryOptions.Count);
+            Assert.Equal("$select", contactFoldersCollectionRequest.QueryOptions[0].Name);
+            Assert.Equal("value", contactFoldersCollectionRequest.QueryOptions[0].Value);
         }
 
         /// <summary>
         /// Tests the Select() method on an entity collection request (contactFolders).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void SelectExpression()
         {
             var expectedRequestUrl = string.Format("{0}/me/contactFolders", this.graphBaseUrl);
 
             var contactFoldersCollectionRequest = this.graphServiceClient.Me.ContactFolders.Request().Select(cf => cf.Contacts) as UserContactFoldersCollectionRequest;
 
-            Assert.IsNotNull(contactFoldersCollectionRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, contactFoldersCollectionRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$select", contactFoldersCollectionRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("contacts", contactFoldersCollectionRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(contactFoldersCollectionRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl));
+            Assert.Equal(1, contactFoldersCollectionRequest.QueryOptions.Count);
+            Assert.Equal("$select", contactFoldersCollectionRequest.QueryOptions[0].Name);
+            Assert.Equal("contacts", contactFoldersCollectionRequest.QueryOptions[0].Value);
         }
 
         /// <summary>
         /// Tests the Top() method on an entity collection request (contactFolders).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Top()
         {
             var expectedRequestUrl = string.Format("{0}/me/contactFolders", this.graphBaseUrl);
 
             var contactFoldersCollectionRequest = this.graphServiceClient.Me.ContactFolders.Request().Top(1) as UserContactFoldersCollectionRequest;
 
-            Assert.IsNotNull(contactFoldersCollectionRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, contactFoldersCollectionRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$top", contactFoldersCollectionRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("1", contactFoldersCollectionRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(contactFoldersCollectionRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl));
+            Assert.Equal(1, contactFoldersCollectionRequest.QueryOptions.Count);
+            Assert.Equal("$top", contactFoldersCollectionRequest.QueryOptions[0].Name);
+            Assert.Equal("1", contactFoldersCollectionRequest.QueryOptions[0].Value);
         }
 
         /// <summary>
         /// Tests the Filter() method on an entity collection request (contactFolders).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Filter()
         {
             var expectedRequestUrl = string.Format("{0}/me/contactFolders", this.graphBaseUrl);
 
             var contactFoldersCollectionRequest = this.graphServiceClient.Me.ContactFolders.Request().Filter("value") as UserContactFoldersCollectionRequest;
 
-            Assert.IsNotNull(contactFoldersCollectionRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, contactFoldersCollectionRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$filter", contactFoldersCollectionRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("value", contactFoldersCollectionRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(contactFoldersCollectionRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl));
+            Assert.Equal(1, contactFoldersCollectionRequest.QueryOptions.Count);
+            Assert.Equal("$filter", contactFoldersCollectionRequest.QueryOptions[0].Name);
+            Assert.Equal("value", contactFoldersCollectionRequest.QueryOptions[0].Value);
         }
 
         /// <summary>
         /// Tests the Skip() method on an entity collection request (contactFolders).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Skip()
         {
             var expectedRequestUrl = string.Format("{0}/me/contactFolders", this.graphBaseUrl);
 
             var contactFoldersCollectionRequest = this.graphServiceClient.Me.ContactFolders.Request().Skip(1) as UserContactFoldersCollectionRequest;
 
-            Assert.IsNotNull(contactFoldersCollectionRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, contactFoldersCollectionRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$skip", contactFoldersCollectionRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("1", contactFoldersCollectionRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(contactFoldersCollectionRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl));
+            Assert.Equal(1, contactFoldersCollectionRequest.QueryOptions.Count);
+            Assert.Equal("$skip", contactFoldersCollectionRequest.QueryOptions[0].Name);
+            Assert.Equal("1", contactFoldersCollectionRequest.QueryOptions[0].Value);
         }
 
         /// <summary>
         /// Tests the OrderBy() method on an entity collection request (contactFolders).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void OrderBy()
         {
             var expectedRequestUrl = string.Format("{0}/me/contactFolders", this.graphBaseUrl);
 
             var contactFoldersCollectionRequest = this.graphServiceClient.Me.ContactFolders.Request().OrderBy("value") as UserContactFoldersCollectionRequest;
 
-            Assert.IsNotNull(contactFoldersCollectionRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, contactFoldersCollectionRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$orderby", contactFoldersCollectionRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("value", contactFoldersCollectionRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(contactFoldersCollectionRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(contactFoldersCollectionRequest.RequestUrl));
+            Assert.Equal(1, contactFoldersCollectionRequest.QueryOptions.Count);
+            Assert.Equal("$orderby", contactFoldersCollectionRequest.QueryOptions[0].Name);
+            Assert.Equal("value", contactFoldersCollectionRequest.QueryOptions[0].Value);
         }
     }
 }

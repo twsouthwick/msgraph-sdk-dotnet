@@ -1,18 +1,19 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.Requests
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Core.Test.Exceptions
 {
-    using System;
-    using System.Text;
-
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-    [TestClass]
     public class ErrorTests
     {
-        [TestMethod]
+        [Fact]
         public void VerifyToString()
         {
             var error = new Error
@@ -41,7 +42,7 @@ namespace Microsoft.Graph.Core.Test.Requests
 
             var serviceException = new ServiceException(error);
 
-            Assert.AreEqual(errorStringBuilder.ToString(), serviceException.ToString(), "Unexpected string response returned.");
+            Assert.Equal(errorStringBuilder.ToString(), serviceException.ToString());
         }
     }
 }

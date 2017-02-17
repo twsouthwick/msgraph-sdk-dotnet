@@ -1,34 +1,34 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.Serialization
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Core.Test.Serialization
 {
-    using System;
-
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-    [TestClass]
     public class DateConverterTests
     {
         private DateConverter converter;
 
-        [TestInitialize]
-        public void Setup()
+        public DateConverterTests()
         {
             this.converter = new DateConverter();
         }
 
-        [TestMethod]
+        [Fact]
         public void CanConvert_Date()
         {
-            Assert.IsTrue(this.converter.CanConvert(typeof(Date)), "Unexpected value for CanConvert.");
+            Assert.True(this.converter.CanConvert(typeof(Date)));
         }
 
-        [TestMethod]
+        [Fact]
         public void CanConvert_InvalidType()
         {
-            Assert.IsFalse(this.converter.CanConvert(typeof(DateTime)), "Unexpected value for CanConvert.");
+            Assert.False(this.converter.CanConvert(typeof(DateTime)));
         }
     }
 }

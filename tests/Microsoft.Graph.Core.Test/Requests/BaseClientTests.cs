@@ -1,55 +1,56 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.Requests
-{
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Mocks;
+using Microsoft.Graph.DotnetCore.Core.Test.Mocks;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
 
-    [TestClass]
+namespace Microsoft.Graph.DotnetCore.Core.Test.Requests
+{
     public class BaseClientTests
     {
         private MockAuthenticationProvider authenticationProvider;
 
-        [TestInitialize]
-        public void Setup()
+        public BaseClientTests()
         {
             this.authenticationProvider = new MockAuthenticationProvider();
         }
 
-        [TestMethod]
+        [Fact]
         public void BaseClient_InitializeBaseUrlWithoutTrailingSlash()
         {
             var expectedBaseUrl = "https://localhost";
 
             var baseClient = new BaseClient(expectedBaseUrl, this.authenticationProvider.Object);
 
-            Assert.AreEqual(expectedBaseUrl, baseClient.BaseUrl, "Unexpected base URL initialized.");
+            Assert.Equal(expectedBaseUrl, baseClient.BaseUrl);
         }
 
-        [TestMethod]
+        [Fact]
         public void BaseClient_InitializeBaseUrlWithTrailingSlash()
         {
             var expectedBaseUrl = "https://localhost";
 
             var baseClient = new BaseClient("https://localhost/", this.authenticationProvider.Object);
 
-            Assert.AreEqual(expectedBaseUrl, baseClient.BaseUrl, "Unexpected base URL initialized.");
+            Assert.Equal(expectedBaseUrl, baseClient.BaseUrl);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public void BaseClient_InitializeEmptyBaseUrl()
         {
             try
             {
-                var baseClient = new BaseClient(null, this.authenticationProvider.Object);
+                Assert.Throws<ServiceException>(() => new BaseClient(null, this.authenticationProvider.Object));
             }
             catch (ServiceException exception)
             {
-                Assert.AreEqual(ErrorConstants.Codes.InvalidRequest, exception.Error.Code, "Unexpected error code.");
-                Assert.AreEqual(ErrorConstants.Messages.BaseUrlMissing, exception.Error.Message, "Unexpected error message.");
+                Assert.Equal(ErrorConstants.Codes.InvalidRequest, exception.Error.Code);
+                Assert.Equal(ErrorConstants.Messages.BaseUrlMissing, exception.Error.Message);
                 throw;
             }
         }

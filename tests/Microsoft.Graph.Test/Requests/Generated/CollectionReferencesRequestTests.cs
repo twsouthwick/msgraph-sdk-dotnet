@@ -1,43 +1,43 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Test.Requests.Generated
+using Microsoft.Graph;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Test.Requests.Generated
 {
-    using System;
-    using System.IO;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-
-    using Microsoft.Graph;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
-    [TestClass]
     public class CollectionReferencesRequestTests : RequestTestBase
     {
         /// <summary>
         /// Tests building a request for the $ref navigation of an entity collection.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void BuildRequest()
         {
             var expectedRequestUri = new Uri(string.Format(Constants.Url.GraphBaseUrlFormatString, "v1.0") + "/groups/groupId/members/$ref");
             var membersReferencesCollectionRequestBuilder = this.graphServiceClient.Groups["groupId"].Members.References as GroupMembersCollectionReferencesRequestBuilder;
 
-            Assert.IsNotNull(membersReferencesCollectionRequestBuilder, "Unexpected request builder.");
-            Assert.AreEqual(expectedRequestUri, new Uri(membersReferencesCollectionRequestBuilder.RequestUrl), "Unexpected request URL.");
+            Assert.NotNull(membersReferencesCollectionRequestBuilder);
+            Assert.Equal(expectedRequestUri, new Uri(membersReferencesCollectionRequestBuilder.RequestUrl));
 
             var membersReferencesCollectionRequest = membersReferencesCollectionRequestBuilder.Request() as GroupMembersCollectionReferencesRequest;
-            Assert.IsNotNull(membersReferencesCollectionRequest, "Unexpected request.");
-            Assert.AreEqual(expectedRequestUri, new Uri(membersReferencesCollectionRequest.RequestUrl), "Unexpected request URL.");
+            Assert.NotNull(membersReferencesCollectionRequest);
+            Assert.Equal(expectedRequestUri, new Uri(membersReferencesCollectionRequest.RequestUrl));
         }
 
         /// <summary>
         /// Tests the AddAsync() method on the $ref navigation of an entity collection.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task AddAsync()
         {
             using (var httpResponseMessage = new HttpResponseMessage())
@@ -74,23 +74,21 @@ namespace Microsoft.Graph.Test.Requests.Generated
         /// <summary>
         /// Tests the AddAsync() method on the $ref navigation of an entity collection errors if ID isn't set on the supplied directoryObject.
         /// </summary>
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task AddAsync_IdRequired()
         {
             var userToCreate = new User();
 
             try
             {
-                await this.graphServiceClient.Groups["groupId"].Members.References.Request().AddAsync(userToCreate);
+                await Assert.ThrowsAsync<ServiceException>(async () => await this.graphServiceClient.Groups["groupId"].Members.References.Request().AddAsync(userToCreate));
             }
             catch (ServiceException serviceException)
             {
-                Assert.IsTrue(serviceException.IsMatch(GraphErrorCode.InvalidRequest.ToString()), "Unexpected error code thrown.");
-                Assert.AreEqual(
+                Assert.True(serviceException.IsMatch(GraphErrorCode.InvalidRequest.ToString()));
+                Assert.Equal(
                     "ID is required to add a reference.",
-                    serviceException.Error.Message,
-                    "Unexpected message thrown.");
+                    serviceException.Error.Message);
 
                 throw;
             }
@@ -137,18 +135,18 @@ namespace Microsoft.Graph.Test.Requests.Generated
         /// <summary>
         /// Tests the Top() method on the request for an entity collection that has a $ref navigation.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Top()
         {
             var expectedRequestUrl = string.Format("{0}/groups/groupId/members", this.graphBaseUrl);
 
             var groupMembersRequest = this.graphServiceClient.Groups["groupId"].Members.Request().Top(1) as GroupMembersCollectionWithReferencesRequest;
 
-            Assert.IsNotNull(groupMembersRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(groupMembersRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, groupMembersRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$top", groupMembersRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("1", groupMembersRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(groupMembersRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(groupMembersRequest.RequestUrl));
+            Assert.Equal(1, groupMembersRequest.QueryOptions.Count);
+            Assert.Equal("$top", groupMembersRequest.QueryOptions[0].Name);
+            Assert.Equal("1", groupMembersRequest.QueryOptions[0].Value);
         }
 
 #if false // This test can no longer run at this time since the Graph does not have a $ref navigation that allows filter.
@@ -192,18 +190,18 @@ namespace Microsoft.Graph.Test.Requests.Generated
         /// <summary>
         /// Tests the OrderBy() method on the request for an entity collection that has a $ref navigation.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void OrderBy()
         {
             var expectedRequestUrl = string.Format("{0}/groups/groupId/members", this.graphBaseUrl);
 
             var groupMembersRequest = this.graphServiceClient.Groups["groupId"].Members.Request().OrderBy("value") as GroupMembersCollectionWithReferencesRequest;
 
-            Assert.IsNotNull(groupMembersRequest, "Unexpected request.");
-            Assert.AreEqual(new Uri(expectedRequestUrl), new Uri(groupMembersRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(1, groupMembersRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.AreEqual("$orderby", groupMembersRequest.QueryOptions[0].Name, "Unexpected query option name.");
-            Assert.AreEqual("value", groupMembersRequest.QueryOptions[0].Value, "Unexpected query option value.");
+            Assert.NotNull(groupMembersRequest);
+            Assert.Equal(new Uri(expectedRequestUrl), new Uri(groupMembersRequest.RequestUrl));
+            Assert.Equal(1, groupMembersRequest.QueryOptions.Count);
+            Assert.Equal("$orderby", groupMembersRequest.QueryOptions[0].Name);
+            Assert.Equal("value", groupMembersRequest.QueryOptions[0].Value);
         }
     }
 }

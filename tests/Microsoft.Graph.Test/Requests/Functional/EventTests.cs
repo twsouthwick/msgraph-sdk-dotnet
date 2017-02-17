@@ -1,15 +1,18 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿// ------------------------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
+// ------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Xunit;
 
-namespace Microsoft.Graph.Test.Requests.Functional
+namespace Microsoft.Graph.DotnetCore.Test.Requests.Functional
 {
-    [Ignore]
-    [TestClass]
     public class EventTests : GraphTestBase
     {
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task EventGetCalendarView()
         {
             try
@@ -22,11 +25,11 @@ namespace Microsoft.Graph.Test.Requests.Functional
                 };
 
                 var todaysEvents = await graphClient.Me.CalendarView.Request(queryOptions).GetAsync();
-                Assert.IsNotNull(todaysEvents, "Expected a UserCalendarViewCollectionPage object.");
+                Assert.NotNull(todaysEvents);
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened, check out a trace. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened, check out a trace. Error code: {0}" + e.Error.Code);
             }
         }
     }

@@ -1,89 +1,86 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.Requests
+using Microsoft.Graph.DotnetCore.Core.Test.Mocks;
+using Microsoft.Graph;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Core.Test.Requests
 {
-    using System;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Threading;
-    using System.Threading.Tasks;
-
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Mocks;
-    using Moq;
-
-    [TestClass]
-    public class HttpProviderTests
+    public class HttpProviderTests : IDisposable
     {
         private HttpProvider httpProvider;
         private MockSerializer serializer = new MockSerializer();
         private TestHttpMessageHandler testHttpMessageHandler;
 
-        [TestInitialize]
-        public void Setup()
+        public HttpProviderTests()
         {
             this.testHttpMessageHandler = new TestHttpMessageHandler();
             this.httpProvider = new HttpProvider(this.testHttpMessageHandler, true, this.serializer.Object);
         }
 
-        [TestCleanup]
-        public void Teardown()
+        public void Dispose()
         {
             this.httpProvider.Dispose();
         }
 
-        [TestMethod]
+        [Fact]
         public void HttpProvider_CustomCacheHeaderAndTimeout()
         {
             var timeout = TimeSpan.FromSeconds(200);
             var cacheHeader = new CacheControlHeaderValue();
             using (var defaultHttpProvider = new HttpProvider(null) { CacheControlHeader = cacheHeader, OverallTimeout = timeout })
             {
-                Assert.IsFalse(defaultHttpProvider.httpClient.DefaultRequestHeaders.CacheControl.NoCache, "NoCache true.");
-                Assert.IsFalse(defaultHttpProvider.httpClient.DefaultRequestHeaders.CacheControl.NoStore, "NoStore true.");
+                Assert.False(defaultHttpProvider.httpClient.DefaultRequestHeaders.CacheControl.NoCache);
+                Assert.False(defaultHttpProvider.httpClient.DefaultRequestHeaders.CacheControl.NoStore);
 
-                Assert.AreEqual(timeout, defaultHttpProvider.httpClient.Timeout, "Unexpected default timeout set.");
-                Assert.IsNotNull(defaultHttpProvider.Serializer, "Serializer not initialized.");
-                Assert.IsInstanceOfType(defaultHttpProvider.Serializer, typeof(Serializer), "Unexpected serializer initialized.");
+                Assert.Equal(timeout, defaultHttpProvider.httpClient.Timeout);
+                Assert.NotNull(defaultHttpProvider.Serializer);
+                Assert.IsType(typeof(Serializer), defaultHttpProvider.Serializer);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void HttpProvider_CustomHttpClientHandler()
         {
             using (var httpClientHandler = new HttpClientHandler())
             using (var httpProvider = new HttpProvider(httpClientHandler, false, null))
             {
-                Assert.AreEqual(httpClientHandler, httpProvider.httpMessageHandler, "Unexpected message handler set.");
-                Assert.IsFalse(httpProvider.disposeHandler, "Dispose handler set to true.");
+                Assert.Equal(httpClientHandler, httpProvider.httpMessageHandler);
+                Assert.False(httpProvider.disposeHandler);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void HttpProvider_DefaultConstructor()
         {
             using (var defaultHttpProvider = new HttpProvider())
             {
-                Assert.IsTrue(defaultHttpProvider.httpClient.DefaultRequestHeaders.CacheControl.NoCache, "NoCache false.");
-                Assert.IsTrue(defaultHttpProvider.httpClient.DefaultRequestHeaders.CacheControl.NoStore, "NoStore false.");
+                Assert.True(defaultHttpProvider.httpClient.DefaultRequestHeaders.CacheControl.NoCache);
+                Assert.True(defaultHttpProvider.httpClient.DefaultRequestHeaders.CacheControl.NoStore);
 
-                Assert.IsTrue(defaultHttpProvider.disposeHandler, "Dispose handler set to false.");
-                Assert.IsNotNull(defaultHttpProvider.httpMessageHandler, "HttpClientHandler not initialized.");
-                Assert.IsFalse(((HttpClientHandler)defaultHttpProvider.httpMessageHandler).AllowAutoRedirect, "AllowAutoRedirect set to true.");
+                Assert.True(defaultHttpProvider.disposeHandler);
+                Assert.NotNull(defaultHttpProvider.httpMessageHandler);
+                Assert.False(((HttpClientHandler)defaultHttpProvider.httpMessageHandler).AllowAutoRedirect);
 
-                Assert.AreEqual(TimeSpan.FromSeconds(100), defaultHttpProvider.httpClient.Timeout, "Unexpected default timeout set.");
+                Assert.Equal(TimeSpan.FromSeconds(100), defaultHttpProvider.httpClient.Timeout);
 
-                Assert.IsInstanceOfType(defaultHttpProvider.Serializer, typeof(Serializer), "Unexpected serializer initialized.");
+                Assert.IsType(typeof(Serializer), defaultHttpProvider.Serializer);
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task OverallTimeout_RequestAlreadySent()
         {
             using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://localhost"))
@@ -95,22 +92,21 @@ namespace Microsoft.Graph.Core.Test.Requests
 
             try
             {
-                this.httpProvider.OverallTimeout = new TimeSpan(0, 0, 30);
+                Assert.Throws<ServiceException>( () => this.httpProvider.OverallTimeout = new TimeSpan(0, 0, 30));
             }
             catch (ServiceException serviceException)
             {
-                Assert.IsTrue(serviceException.IsMatch(ErrorConstants.Codes.NotAllowed), "Unexpected error code thrown.");
-                Assert.AreEqual(
+                Assert.True(serviceException.IsMatch(ErrorConstants.Codes.NotAllowed));
+                Assert.Equal(
                     ErrorConstants.Messages.OverallTimeoutCannotBeSet,
-                    serviceException.Error.Message,
-                    "Unexpected error message thrown.");
-                Assert.IsInstanceOfType(serviceException.InnerException, typeof(InvalidOperationException), "Unexpected inner exception thrown.");
+                    serviceException.Error.Message);
+                Assert.IsType(typeof(InvalidOperationException), serviceException.InnerException);
 
                 throw;
             }
         }
 
-        [TestMethod]
+        [Fact]
         public async Task SendAsync()
         {
             using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://localhost"))
@@ -119,12 +115,11 @@ namespace Microsoft.Graph.Core.Test.Requests
                 this.testHttpMessageHandler.AddResponseMapping(httpRequestMessage.RequestUri.ToString(), httpResponseMessage);
                 var returnedResponseMessage = await this.httpProvider.SendAsync(httpRequestMessage);
 
-                Assert.AreEqual(httpResponseMessage, returnedResponseMessage, "Unexpected response returned.");
+                Assert.Equal(httpResponseMessage, returnedResponseMessage);
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task SendAsync_ClientGeneralException()
         {
             using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://localhost"))
@@ -136,21 +131,21 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 try
                 {
-                    await this.httpProvider.SendRequestAsync(httpRequestMessage, HttpCompletionOption.ResponseContentRead, CancellationToken.None);
+                    await Assert.ThrowsAsync<ServiceException>(async () => await this.httpProvider.SendRequestAsync(
+                        httpRequestMessage, HttpCompletionOption.ResponseContentRead, CancellationToken.None));
                 }
                 catch (ServiceException exception)
                 {
-                    Assert.IsTrue(exception.IsMatch(ErrorConstants.Codes.GeneralException), "Unexpected error code returned.");
-                    Assert.AreEqual(ErrorConstants.Messages.UnexpectedExceptionOnSend, exception.Error.Message, "Unexpected error message.");
-                    Assert.AreEqual(clientException, exception.InnerException, "Inner exception not set.");
+                    Assert.True(exception.IsMatch(ErrorConstants.Codes.GeneralException));
+                    Assert.Equal(ErrorConstants.Messages.UnexpectedExceptionOnSend, exception.Error.Message);
+                    Assert.Equal(clientException, exception.InnerException);
 
                     throw;
                 }
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task SendAsync_ClientTimeout()
         {
             using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://localhost"))
@@ -162,21 +157,21 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 try
                 {
-                    await this.httpProvider.SendRequestAsync(httpRequestMessage, HttpCompletionOption.ResponseContentRead, CancellationToken.None);
+                    await Assert.ThrowsAsync<ServiceException>(async () => await this.httpProvider.SendRequestAsync(
+                        httpRequestMessage, HttpCompletionOption.ResponseContentRead, CancellationToken.None));
                 }
                 catch (ServiceException exception)
                 {
-                    Assert.IsTrue(exception.IsMatch(ErrorConstants.Codes.Timeout), "Unexpected error code returned.");
-                    Assert.AreEqual(ErrorConstants.Messages.RequestTimedOut, exception.Error.Message, "Unexpected error message.");
-                    Assert.AreEqual(clientException, exception.InnerException, "Inner exception not set.");
+                    Assert.True(exception.IsMatch(ErrorConstants.Codes.Timeout));
+                    Assert.Equal(ErrorConstants.Messages.RequestTimedOut, exception.Error.Message);
+                    Assert.Equal(clientException, exception.InnerException);
 
                     throw;
                 }
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task SendAsync_InvalidRedirectResponse()
         {
             using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://localhost"))
@@ -189,22 +184,21 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 try
                 {
-                    var returnedResponseMessage = await this.httpProvider.SendAsync(httpRequestMessage);
+                    await Assert.ThrowsAsync<ServiceException>(async () => await this.httpProvider.SendAsync(httpRequestMessage));
                 }
                 catch (ServiceException exception)
                 {
-                    Assert.IsTrue(exception.IsMatch(ErrorConstants.Codes.GeneralException), "Unexpected error code returned.");
-                    Assert.AreEqual(
+                    Assert.True(exception.IsMatch(ErrorConstants.Codes.GeneralException));
+                    Assert.Equal(
                         ErrorConstants.Messages.LocationHeaderNotSetOnRedirect,
-                        exception.Error.Message,
-                        "Unexpected error message returned.");
+                        exception.Error.Message);
 
                     throw;
                 }
             }
         }
 
-        [TestMethod]
+        [Fact]
         public async Task SendAsync_RedirectResponse_VerifyHeadersOnRedirect()
         {
             using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://localhost"))
@@ -224,24 +218,23 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 var returnedResponseMessage = await this.httpProvider.SendAsync(httpRequestMessage);
 
-                Assert.AreEqual(3, finalResponseMessage.RequestMessage.Headers.Count(), "Unexpected number of headers on redirect request message.");
-                
+                Assert.Equal(3, finalResponseMessage.RequestMessage.Headers.Count());
+
                 foreach (var header in httpRequestMessage.Headers)
                 {
                     var actualValues = finalResponseMessage.RequestMessage.Headers.GetValues(header.Key);
 
-                    Assert.AreEqual(actualValues.Count(), header.Value.Count(), "Unexpected header on redirect request message.");
+                    Assert.Equal(actualValues.Count(), header.Value.Count());
 
                     foreach (var headerValue in header.Value)
                     {
-                        Assert.IsTrue(actualValues.Contains(headerValue), "Unexpected header on redirect request message.");
+                        Assert.True(actualValues.Contains(headerValue));
                     }
                 }
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task SendAsync_MaxRedirects()
         {
             using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://localhost"))
@@ -261,27 +254,25 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 try
                 {
-                    await this.httpProvider.HandleRedirect(
+                    await Assert.ThrowsAsync<ServiceException>(async () => await this.httpProvider.HandleRedirect(
                         redirectResponseMessage,
                         HttpCompletionOption.ResponseContentRead,
                         CancellationToken.None,
-                        5);
+                        5));
                 }
                 catch (ServiceException exception)
                 {
-                    Assert.IsTrue(exception.IsMatch(ErrorConstants.Codes.TooManyRedirects), "Unexpected error code returned.");
-                    Assert.AreEqual(
+                    Assert.True(exception.IsMatch(ErrorConstants.Codes.TooManyRedirects));
+                    Assert.Equal(
                         string.Format(ErrorConstants.Messages.TooManyRedirectsFormatString, "5"),
-                        exception.Error.Message,
-                        "Unexpected error message returned.");
+                        exception.Error.Message);
 
                     throw;
                 }
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task SendAsync_NotFoundWithoutErrorBody()
         {
             using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "https://localhost"))
@@ -300,20 +291,19 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 try
                 {
-                    await this.httpProvider.SendAsync(httpRequestMessage);
+                    await Assert.ThrowsAsync<ServiceException>(async () => await this.httpProvider.SendAsync(httpRequestMessage));
                 }
                 catch (ServiceException exception)
                 {
-                    Assert.IsTrue(exception.IsMatch(ErrorConstants.Codes.ItemNotFound), "Unexpected error code returned.");
-                    Assert.IsTrue(string.IsNullOrEmpty(exception.Error.Message), "Unexpected error message returned.");
+                    Assert.True(exception.IsMatch(ErrorConstants.Codes.ItemNotFound));
+                    Assert.True(string.IsNullOrEmpty(exception.Error.Message));
 
                     throw;
                 }
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task SendAsync_NotFoundWithBody()
         {
             using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://localhost"))
@@ -338,20 +328,19 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 try
                 {
-                    await this.httpProvider.SendAsync(httpRequestMessage);
+                    await Assert.ThrowsAsync<ServiceException>(async () => await this.httpProvider.SendAsync(httpRequestMessage));
                 }
                 catch (ServiceException exception)
                 {
-                    Assert.AreEqual(expectedError.Error.Code, exception.Error.Code, "Unexpected error code returned.");
-                    Assert.AreEqual(expectedError.Error.Message, exception.Error.Message, "Unexpected error message.");
+                    Assert.Equal(expectedError.Error.Code, exception.Error.Code);
+                    Assert.Equal(expectedError.Error.Message, exception.Error.Message);
 
                     throw;
                 }
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task SendAsync_CopyThrowSiteHeader()
         {
             using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://localhost"))
@@ -372,23 +361,21 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 try
                 {
-                    var returnedResponseMessage = await this.httpProvider.SendAsync(httpRequestMessage);
+                    await Assert.ThrowsAsync<ServiceException>(async () => await this.httpProvider.SendAsync(httpRequestMessage));
                 }
                 catch (ServiceException exception)
                 {
-                    Assert.IsNotNull(exception.Error, "Error not set in exception.");
-                    Assert.AreEqual(
+                    Assert.NotNull(exception.Error);
+                    Assert.Equal(
                         throwSite,
-                        exception.Error.ThrowSite,
-                        "Unexpected error throw site returned.");
+                        exception.Error.ThrowSite);
 
                     throw;
                 }
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task SendAsync_CopyThrowSiteHeader_ThrowSiteAlreadyInError()
         {
             using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://localhost"))
@@ -413,15 +400,14 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 try
                 {
-                    var returnedResponseMessage = await this.httpProvider.SendAsync(httpRequestMessage);
+                    await Assert.ThrowsAsync<ServiceException>(async () => await this.httpProvider.SendAsync(httpRequestMessage));
                 }
                 catch (ServiceException exception)
                 {
-                    Assert.IsNotNull(exception.Error, "Error not set in exception.");
-                    Assert.AreEqual(
+                    Assert.NotNull(exception.Error);
+                    Assert.Equal(
                         throwSiteBodyValue,
-                        exception.Error.ThrowSite,
-                        "Unexpected error throw site returned.");
+                        exception.Error.ThrowSite);
 
                     throw;
                 }

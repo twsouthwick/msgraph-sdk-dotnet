@@ -1,68 +1,71 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.Helpers
-{
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
 
-    [TestClass]
+namespace Microsoft.Graph.DotnetCore.Core.Test.Helpers
+{
     public class StringHelperTests
     {
-        [TestMethod]
+        [Fact]
         public void ConvertTypeToLowerCamelCase()
         {
             var expectedTypeString = "microsoft.graph.type";
 
             var returnedTypeString = StringHelper.ConvertTypeToLowerCamelCase("Microsoft.Graph.Type");
 
-            Assert.AreEqual(expectedTypeString, returnedTypeString, "Unexpected string returned.");
+            Assert.Equal(expectedTypeString, returnedTypeString);
         }
 
-        [TestMethod]
+        [Fact]
         public void ConvertTypeToLowerCamelCase_NoNamespace()
         {
             var expectedTypeString = "newType";
 
             var returnedTypeString = StringHelper.ConvertTypeToLowerCamelCase("NewType");
 
-            Assert.AreEqual(expectedTypeString, returnedTypeString, "Unexpected string returned.");
+            Assert.Equal(expectedTypeString, returnedTypeString);
         }
 
-        [TestMethod]
+        [Fact]
         public void ConvertTypeToLowerCamelCase_NullTypeString()
         {
             var returnedTypeString = StringHelper.ConvertTypeToLowerCamelCase(null);
 
-            Assert.IsNull(returnedTypeString, "Unexpected string returned.");
+            Assert.Null(returnedTypeString);
         }
 
-        [TestMethod]
+        [Fact]
         public void ConvertTypeToTitleCase()
         {
             var expectedTypeString = "Microsoft.Graph.Type";
 
             var returnedTypeString = StringHelper.ConvertTypeToTitleCase("microsoft.graph.type");
 
-            Assert.AreEqual(expectedTypeString, returnedTypeString, "Unexpected string returned.");
+            Assert.Equal(expectedTypeString, returnedTypeString);
         }
 
-        [TestMethod]
+        [Fact]
         public void ConvertTypeToTitleCase_NoNamespace()
         {
             var expectedTypeString = "NewType";
 
             var returnedTypeString = StringHelper.ConvertTypeToTitleCase("newType");
 
-            Assert.AreEqual(expectedTypeString, returnedTypeString, "Unexpected string returned.");
+            Assert.Equal(expectedTypeString, returnedTypeString);
         }
 
-        [TestMethod]
+        [Fact]
         public void ConvertTypeToTitleCase_NullTypeString()
         {
             var returnedTypeString = StringHelper.ConvertTypeToTitleCase(null);
 
-            Assert.IsNull(returnedTypeString, "Unexpected string returned.");
+            Assert.Null(returnedTypeString);
         }
     }
 }

@@ -1,17 +1,20 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿// ------------------------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
+// ------------------------------------------------------------------------------
+
+using Microsoft.Graph;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using Xunit;
 
-namespace Microsoft.Graph.Test.Requests.Functional
+namespace Microsoft.Graph.DotnetCore.Test.Requests.Functional
 {
-    [Ignore]
-    [TestClass]
     public class MailTests : GraphTestBase
     {
 
-        
         public async Task<Message> createEmail(string emailBody)
         {
             // Get the test user.
@@ -36,10 +39,10 @@ namespace Microsoft.Graph.Test.Requests.Functional
             message.ToRecipients = recipients;
 
             return message;
-        } 
+        }
 
         // Tests the SendMail action.
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task MailSendMail()
         {
             try
@@ -57,39 +60,39 @@ namespace Microsoft.Graph.Test.Requests.Functional
                 // Check the we found the sent email in the sent items folder.
                 var mailFolderMessagesCollectionPage = await graphClient.Me.MailFolders["sentitems"].Messages.Request(query).GetAsync();
 
-                Assert.IsNotNull(mailFolderMessagesCollectionPage, "Unexpected results, the results contains a null collection.");
+                Assert.NotNull(mailFolderMessagesCollectionPage);
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened, check out a trace. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened, check out a trace. Error code: " + e.Error.Code);
             }
         }
 
-        // Test that we can set an attachment on a mail, send it, and then retrieve it.
-        [TestMethod]
-        public async Task MailSendMailWithFileAttachment()
-        {
-            try
-            {
-                var message = await createEmail("Sent from the MailSendMailWithAttachment test.");
+        //// Test that we can set an attachment on a mail, send it, and then retrieve it.
+        //[Fact]
+        //public async Task MailSendMailWithFileAttachment()
+        //{
+        //    try
+        //    {
+        //        var message = await createEmail("Sent from the MailSendMailWithAttachment test.");
 
-                var attachment = new FileAttachment();
-                attachment.ODataType = "#microsoft.graph.fileAttachment";
-                attachment.Name = "MyFileAttachment.txt";
-                attachment.ContentBytes = Microsoft.Graph.Test.Properties.Resources.textfile;
+        //        var attachment = new FileAttachment();
+        //        attachment.ODataType = "#microsoft.graph.fileAttachment";
+        //        attachment.Name = "MyFileAttachment.txt";
+        //        attachment.ContentBytes = Microsoft.Graph.DotnetCore.Test.Properties.Resources.textfile;
 
-                message.Attachments = new MessageAttachmentsCollectionPage();
-                message.Attachments.Add(attachment);
+        //        message.Attachments = new MessageAttachmentsCollectionPage();
+        //        message.Attachments.Add(attachment);
 
-                await graphClient.Me.SendMail(message, true).Request().PostAsync();
-            }
-            catch (Microsoft.Graph.ServiceException e)
-            {
-                Assert.Fail("Something happened, check out a trace. Error code: {0}", e.Error.Code);
-            }
-        }
+        //        await graphClient.Me.SendMail(message, true).Request().PostAsync();
+        //    }
+        //    catch (Microsoft.Graph.ServiceException e)
+        //    {
+        //        Assert.True(false, "Something happened, check out a trace. Error code: " + e.Error.Code);
+        //    }
+        //}
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task MailGetMailWithFileAttachment()
         {
             try
@@ -114,17 +117,17 @@ namespace Microsoft.Graph.Test.Requests.Functional
                                                           .GetAsync();
 
                     if (attachmment is FileAttachment)
-                        Assert.IsNotNull((attachmment as FileAttachment).ContentBytes, "The attachment doesn't contain expected content.");
+                        Assert.NotNull((attachmment as FileAttachment).ContentBytes);
                 }
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened, check out a trace. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened, check out a trace. Error code: " + e.Error.Code);
             }
         }
 
 
-        [TestMethod]
+        [Fact(Skip = "No CI set up for functional tests")]
         public async Task MailNextPageRequest()
         {
             try
@@ -143,7 +146,7 @@ namespace Microsoft.Graph.Test.Requests.Functional
             }
             catch (Microsoft.Graph.ServiceException e)
             {
-                Assert.Fail("Something happened, check out a trace. Error code: {0}", e.Error.Code);
+                Assert.True(false, "Something happened, check out a trace. Error code: " + e.Error.Code);
             }
         }
     }

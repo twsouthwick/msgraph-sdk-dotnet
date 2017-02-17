@@ -1,18 +1,18 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.Requests
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Core.Test.Exceptions
 {
-    using System;
-
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-    [TestClass]
     public class ServiceExceptionTests
     {
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Fact]
         public void IsMatch_ErrorCodeRequired()
         {
             var serviceException = new ServiceException(
@@ -21,10 +21,10 @@ namespace Microsoft.Graph.Core.Test.Requests
                     Code = "errorCode",
                 });
 
-            serviceException.IsMatch(null);
+            Assert.Throws<ArgumentException>(() => serviceException.IsMatch(null));
         }
 
-        [TestMethod]
+        [Fact]
         public void IsMatch_NestedErrors()
         {
             var serviceException = new ServiceException(
@@ -41,10 +41,10 @@ namespace Microsoft.Graph.Core.Test.Requests
                     }
                 });
 
-            Assert.IsTrue(serviceException.IsMatch("errorcodematch"), "Matching error code not found.");
+            Assert.True(serviceException.IsMatch("errorcodematch"));
         }
 
-        [TestMethod]
+        [Fact]
         public void IsMatch_NoMatch()
         {
             var serviceException = new ServiceException(
@@ -61,10 +61,10 @@ namespace Microsoft.Graph.Core.Test.Requests
                     }
                 });
 
-            Assert.IsFalse(serviceException.IsMatch("noMatch"), "Matching error code found.");
+            Assert.False(serviceException.IsMatch("noMatch"));
         }
 
-        [TestMethod]
+        [Fact]
         public void ToString_ErrorNotNull()
         {
             var error = new Error
@@ -74,15 +74,15 @@ namespace Microsoft.Graph.Core.Test.Requests
 
             var serviceException = new ServiceException(error);
 
-            Assert.AreEqual(error.ToString(), serviceException.ToString(), "Unexpected string response returned.");
+            Assert.Equal(error.ToString(), serviceException.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void ToString_ErrorNull()
         {
             var serviceException = new ServiceException(null);
 
-            Assert.IsNull(serviceException.ToString(), "Unexpected string response returned.");
+            Assert.Null(serviceException.ToString());
         }
     }
 }

@@ -1,26 +1,26 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Test.Models
+using Microsoft.Graph;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Test.Models
 {
-    using System;
-
-    using Microsoft.Graph.Core;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-    [TestClass]
     public class ModelSerializationTests
     {
         private Serializer serializer;
 
-        [TestInitialize]
-        public void Setup()
+        public ModelSerializationTests()
         {
             this.serializer = new Serializer();
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeDerivedType()
         {
             var userId = "userId";
@@ -33,12 +33,12 @@ namespace Microsoft.Graph.Test.Models
 
             var user = this.serializer.DeserializeObject<DirectoryObject>(stringToDeserialize) as User;
 
-            Assert.IsNotNull(user, "User not correctly deserialized.");
-            Assert.AreEqual(userId, user.Id, "Unexpected ID initialized.");
-            Assert.AreEqual(givenName, user.GivenName, "Unexpected given name initialized.");
+            Assert.NotNull(user);
+            Assert.Equal(userId, user.Id);
+            Assert.Equal(givenName, user.GivenName);
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeInvalidODataType()
         {
             var directoryObjectId = "directoryObjectId";
@@ -51,13 +51,13 @@ namespace Microsoft.Graph.Test.Models
 
             var directoryObject = this.serializer.DeserializeObject<DirectoryObject>(stringToDeserialize);
 
-            Assert.IsNotNull(directoryObject, "Directory object not correctly deserialized.");
-            Assert.AreEqual(directoryObjectId, directoryObject.Id, "Unexpected ID initialized.");
-            Assert.IsNotNull(directoryObject.AdditionalData, "Additional data not initialized.");
-            Assert.AreEqual(givenName, directoryObject.AdditionalData["givenName"] as string, "Unexpected additional data initialized.");
+            Assert.NotNull(directoryObject);
+            Assert.Equal(directoryObjectId, directoryObject.Id);
+            Assert.NotNull(directoryObject.AdditionalData);
+            Assert.Equal(givenName, directoryObject.AdditionalData["givenName"] as string);
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeUnknownEnumValue()
         {
             var enumValue = "newValue";
@@ -70,14 +70,14 @@ namespace Microsoft.Graph.Test.Models
 
             var itemBody = this.serializer.DeserializeObject<ItemBody>(stringToDeserialize);
 
-            Assert.IsNotNull(itemBody, "Item body not correctly deserialized.");
-            Assert.AreEqual(bodyContent, itemBody.Content, "Unexpected body content initialized.");
-            Assert.IsNull(itemBody.ContentType, "Unexpected content type initialized.");
-            Assert.IsNotNull(itemBody.AdditionalData, "Additional data not initialized.");
-            Assert.AreEqual(enumValue, itemBody.AdditionalData["contentType"] as string, "Content type not set in additional data.");
+            Assert.NotNull(itemBody);
+            Assert.Equal(bodyContent, itemBody.Content);
+            Assert.Null(itemBody.ContentType);
+            Assert.NotNull(itemBody.AdditionalData);
+            Assert.Equal(enumValue, itemBody.AdditionalData["contentType"] as string);
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeDateValue()
         {
             var now = DateTimeOffset.UtcNow;
@@ -85,13 +85,13 @@ namespace Microsoft.Graph.Test.Models
             var stringToDeserialize = string.Format("{{\"startDate\":\"{0}\"}}", now.ToString("yyyy-MM-dd"));
 
             var recurrenceRange = this.serializer.DeserializeObject<RecurrenceRange>(stringToDeserialize);
-            
-            Assert.AreEqual(now.Year, recurrenceRange.StartDate.Year, "Unexpected startDate year deserialized.");
-            Assert.AreEqual(now.Month, recurrenceRange.StartDate.Month, "Unexpected startDate month deserialized.");
-            Assert.AreEqual(now.Day, recurrenceRange.StartDate.Day, "Unexpected startDate day deserialized.");
+
+            Assert.Equal(now.Year, recurrenceRange.StartDate.Year);
+            Assert.Equal(now.Month, recurrenceRange.StartDate.Month);
+            Assert.Equal(now.Day, recurrenceRange.StartDate.Day);
         }
 
-        [TestMethod]
+        [Fact]
         public void DeserializeInterface()
         {
             var driveItemChildrenCollectionPage = new DriveItemChildrenCollectionPage
@@ -103,12 +103,12 @@ namespace Microsoft.Graph.Test.Models
 
             var deserializedPage = this.serializer.DeserializeObject<IDriveItemChildrenCollectionPage>(serializedString);
 
-            Assert.IsInstanceOfType(deserializedPage, typeof(DriveItemChildrenCollectionPage), "Unexpected object deserialized.");
-            Assert.AreEqual(1, deserializedPage.Count, "Unexpected driveItems deserialized.");
-            Assert.AreEqual("id", deserializedPage[0].Id, "Unexpected driveItem deserialized.");
+            Assert.IsType(typeof(DriveItemChildrenCollectionPage), deserializedPage);
+            Assert.Equal(1, deserializedPage.Count);
+            Assert.Equal("id", deserializedPage[0].Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void NewAbstractEntityDerivedClassInstance()
         {
             var entityId = "entityId";
@@ -123,13 +123,13 @@ namespace Microsoft.Graph.Test.Models
 
             var entity = this.serializer.DeserializeObject<Entity>(stringToDeserialize);
 
-            Assert.IsNotNull(entity, "Entity not correctly deserialized.");
-            Assert.AreEqual(entityId, entity.Id, "Unexpected ID initialized.");
-            Assert.IsNotNull(entity.AdditionalData, "Additional data not initialized.");
-            Assert.AreEqual(additionalValue, entity.AdditionalData[additionalKey] as string, "Unexpected additional data initialized.");
+            Assert.NotNull(entity);
+            Assert.Equal(entityId, entity.Id);
+            Assert.NotNull(entity.AdditionalData);
+            Assert.Equal(additionalValue, entity.AdditionalData[additionalKey] as string);
         }
 
-        [TestMethod]
+        [Fact]
         public void SerializeAndDeserializeKnownEnumValue()
         {
             var itemBody = new ItemBody
@@ -145,17 +145,17 @@ namespace Microsoft.Graph.Test.Models
 
             var serializedValue = this.serializer.SerializeObject(itemBody);
 
-            Assert.AreEqual(expectedSerializedStream, serializedValue, "Unexpected value serialized.");
+            Assert.Equal(expectedSerializedStream, serializedValue);
 
             var newItemBody = this.serializer.DeserializeObject<ItemBody>(serializedValue);
 
-            Assert.IsNotNull(newItemBody, "Item body not correctly deserialized.");
-            Assert.AreEqual(itemBody.Content, itemBody.Content, "Unexpected body content initialized.");
-            Assert.AreEqual(BodyType.Text, itemBody.ContentType, "Unexpected content type initialized.");
-            Assert.IsNull(itemBody.AdditionalData, "Additional data initialized.");
+            Assert.NotNull(newItemBody);
+            Assert.Equal(itemBody.Content, itemBody.Content);
+            Assert.Equal(BodyType.Text, itemBody.ContentType);
+            Assert.Null(itemBody.AdditionalData);
         }
 
-        [TestMethod]
+        [Fact]
         public void SerializeDateValue()
         {
             var now = DateTimeOffset.UtcNow;
@@ -169,7 +169,7 @@ namespace Microsoft.Graph.Test.Models
 
             var serializedString = this.serializer.SerializeObject(recurrence);
 
-            Assert.AreEqual(expectedSerializedString, serializedString, "Unexpected value serialized.");
+            Assert.Equal(expectedSerializedString, serializedString);
         }
     }
 }

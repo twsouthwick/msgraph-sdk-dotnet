@@ -1,19 +1,20 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.Authentication
-{
-    using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Threading.Tasks;
-    
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Xunit;
 
-    [TestClass]
-    public class AuthenticationProviderTests
+namespace Microsoft.Graph.DotnetCore.Core.Test.Authentication
+{
+    public class DelegateAuthenticationProviderTests
     {
-        [TestMethod]
+        [Fact]
         public async Task AppendAuthenticationHeaderAsync()
         {
             var authenticationToken = "token";
@@ -28,14 +29,13 @@ namespace Microsoft.Graph.Core.Test.Authentication
             using (var httpRequestMessage = new HttpRequestMessage())
             {
                 await authenticationProvider.AuthenticateRequestAsync(httpRequestMessage);
-                Assert.AreEqual(
+                Assert.Equal(
                     string.Format("{0} {1}", CoreConstants.Headers.Bearer, authenticationToken),
-                    httpRequestMessage.Headers.Authorization.ToString(),
-                    "Unexpected authorization header set.");
+                    httpRequestMessage.Headers.Authorization.ToString());
             }
         }
 
-        [TestMethod]
+        [Fact]
         public async Task AppendAuthenticationHeaderAsync_DelegateNotSet()
         {
             var authenticationProvider = new DelegateAuthenticationProvider(null);
@@ -43,7 +43,7 @@ namespace Microsoft.Graph.Core.Test.Authentication
             using (var httpRequestMessage = new HttpRequestMessage())
             {
                 await authenticationProvider.AuthenticateRequestAsync(httpRequestMessage);
-                Assert.IsNull(httpRequestMessage.Headers.Authorization, "Unexpected authorization header set.");
+                Assert.Null(httpRequestMessage.Headers.Authorization);
             }
         }
     }

@@ -1,42 +1,39 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.Requests
-{
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net.Http;
-    using System.Reflection;
-    using System.Threading;
-    using System.Threading.Tasks;
-    
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-    using TestModels;
+using Microsoft.Graph.DotnetCore.Core.Test.TestModels;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
 
-    [TestClass]
+namespace Microsoft.Graph.DotnetCore.Core.Test.Requests
+{
     public class BaseRequestTests : RequestTestBase
     {
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public void BaseRequest_InitializeWithEmptyBaseUrl()
         {
             try
             {
-                var baseRequest = new BaseRequest(null, this.baseClient);
+                Assert.Throws<ServiceException>(() => new BaseRequest(null, this.baseClient));
             }
             catch (ServiceException exception)
             {
-                Assert.AreEqual(ErrorConstants.Codes.InvalidRequest, exception.Error.Code, "Unexpected error code.");
-                Assert.AreEqual(ErrorConstants.Messages.BaseUrlMissing, exception.Error.Message, "Unexpected error message.");
+                Assert.Equal(ErrorConstants.Codes.InvalidRequest, exception.Error.Code);
+                Assert.Equal(ErrorConstants.Messages.BaseUrlMissing, exception.Error.Message);
                 throw;
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void BaseRequest_InitializeWithQueryStringAndOptions()
         {
             var baseUrl = string.Concat(this.baseUrl, "/me/drive/items/id");
@@ -50,16 +47,16 @@ namespace Microsoft.Graph.Core.Test.Requests
 
             var baseRequest = new BaseRequest(requestUrl, this.baseClient, options);
 
-            Assert.AreEqual(new Uri(baseUrl), new Uri(baseRequest.RequestUrl), "Unexpected request URL.");
-            Assert.AreEqual(3, baseRequest.QueryOptions.Count, "Unexpected number of query options.");
-            Assert.IsTrue(baseRequest.QueryOptions[0].Name.Equals("key") && baseRequest.QueryOptions[0].Value.Equals("value"), "Unexpected first query option.");
-            Assert.IsTrue(baseRequest.QueryOptions[1].Name.Equals("key2") && string.IsNullOrEmpty(baseRequest.QueryOptions[1].Value), "Unexpected second query option.");
-            Assert.IsTrue(baseRequest.QueryOptions[2].Name.Equals("key3") && baseRequest.QueryOptions[2].Value.Equals("value3"), "Unexpected third query option.");
-            Assert.AreEqual(1, baseRequest.Headers.Count, "Unexpected number of header options.");
-            Assert.IsTrue(baseRequest.Headers[0].Name.Equals("header") && baseRequest.Headers[0].Value.Equals("value"), "Unexpected header option.");
+            Assert.Equal(new Uri(baseUrl), new Uri(baseRequest.RequestUrl));
+            Assert.Equal(3, baseRequest.QueryOptions.Count);
+            Assert.True(baseRequest.QueryOptions[0].Name.Equals("key") && baseRequest.QueryOptions[0].Value.Equals("value"));
+            Assert.True(baseRequest.QueryOptions[1].Name.Equals("key2") && string.IsNullOrEmpty(baseRequest.QueryOptions[1].Value));
+            Assert.True(baseRequest.QueryOptions[2].Name.Equals("key3") && baseRequest.QueryOptions[2].Value.Equals("value3"));
+            Assert.Equal(1, baseRequest.Headers.Count);
+            Assert.True(baseRequest.Headers[0].Name.Equals("header") && baseRequest.Headers[0].Value.Equals("value"));
         }
 
-        [TestMethod]
+        [Fact]
         public void GetWebRequestWithHeadersAndQueryOptions()
         {
             var requestUrl = string.Concat(this.baseUrl, "/me/drive/items/id");
@@ -75,20 +72,19 @@ namespace Microsoft.Graph.Core.Test.Requests
             var baseRequest = new BaseRequest(requestUrl, this.baseClient, options) { Method = "PUT" };
 
             var httpRequestMessage = baseRequest.GetHttpRequestMessage();
-            Assert.AreEqual(HttpMethod.Put, httpRequestMessage.Method, "Unexpected HTTP method in request.");
-            Assert.AreEqual(requestUrl + "?query1=value1&query2=value2",
-                httpRequestMessage.RequestUri.GetComponents(UriComponents.AbsoluteUri & ~UriComponents.Port, UriFormat.Unescaped),
-                "Unexpected base URL in request.");
-            Assert.AreEqual("value1", httpRequestMessage.Headers.GetValues("header1").First(), "Unexpected first header in request.");
-            Assert.AreEqual("value2", httpRequestMessage.Headers.GetValues("header2").First(), "Unexpected second header in request.");
+            Assert.Equal(HttpMethod.Put, httpRequestMessage.Method);
+            Assert.Equal(requestUrl + "?query1=value1&query2=value2",
+                httpRequestMessage.RequestUri.GetComponents(UriComponents.AbsoluteUri & ~UriComponents.Port, UriFormat.Unescaped));
+            Assert.Equal("value1", httpRequestMessage.Headers.GetValues("header1").First());
+            Assert.Equal("value2", httpRequestMessage.Headers.GetValues("header2").First());
 
             var expectedVersion = typeof(BaseRequest).GetTypeInfo().Assembly.GetName().Version;
-            Assert.AreEqual(
+            Assert.Equal(
                 string.Format("Graph-dotnet-{0}.{1}.{2}", expectedVersion.Major, expectedVersion.Minor, expectedVersion.Build),
-                httpRequestMessage.Headers.GetValues(CoreConstants.Headers.SdkVersionHeaderName).First(), "Unexpected request stats header.");
+                httpRequestMessage.Headers.GetValues(CoreConstants.Headers.SdkVersionHeaderName).First());
         }
 
-        [TestMethod]
+        [Fact]
         public void GetWebRequestNoOptions()
         {
             var requestUrl = string.Concat(this.baseUrl, "/me/drive/items/id");
@@ -96,19 +92,18 @@ namespace Microsoft.Graph.Core.Test.Requests
             var baseRequest = new BaseRequest(requestUrl, this.baseClient) { Method = "DELETE" };
 
             var httpRequestMessage = baseRequest.GetHttpRequestMessage();
-            Assert.AreEqual(HttpMethod.Delete, httpRequestMessage.Method, "Unexpected HTTP method in request.");
-            Assert.AreEqual(requestUrl,
-                httpRequestMessage.RequestUri.GetComponents(UriComponents.AbsoluteUri & ~UriComponents.Port, UriFormat.Unescaped),
-                "Unexpected base URL in request.");
-            Assert.AreEqual(1, httpRequestMessage.Headers.Count(), "Unexpected headers in request.");
+            Assert.Equal(HttpMethod.Delete, httpRequestMessage.Method);
+            Assert.Equal(requestUrl,
+                httpRequestMessage.RequestUri.GetComponents(UriComponents.AbsoluteUri & ~UriComponents.Port, UriFormat.Unescaped));
+            Assert.Equal(1, httpRequestMessage.Headers.Count());
 
             var expectedVersion = typeof(BaseRequest).GetTypeInfo().Assembly.GetName().Version;
-            Assert.AreEqual(
+            Assert.Equal(
                 string.Format("Graph-dotnet-{0}.{1}.{2}", expectedVersion.Major, expectedVersion.Minor, expectedVersion.Build),
-                httpRequestMessage.Headers.GetValues(CoreConstants.Headers.SdkVersionHeaderName).First(), "Unexpected request stats header.");
+                httpRequestMessage.Headers.GetValues(CoreConstants.Headers.SdkVersionHeaderName).First());
         }
 
-        [TestMethod]
+        [Fact]
         public void GetWebRequest_OverrideCustomTelemetryHeader()
         {
             var requestUrl = string.Concat(this.baseUrl, "/me/drive/items/id");
@@ -117,15 +112,15 @@ namespace Microsoft.Graph.Core.Test.Requests
 
             var httpRequestMessage = baseRequest.GetHttpRequestMessage();
 
-            Assert.AreEqual(
+            Assert.Equal(
                 CustomRequest.SdkHeaderValue,
-                httpRequestMessage.Headers.GetValues(CustomRequest.SdkHeaderName).First(), "Unexpected request stats header.");
+                httpRequestMessage.Headers.GetValues(CustomRequest.SdkHeaderName).First());
 
-            Assert.IsFalse(
-                httpRequestMessage.Headers.Contains(CoreConstants.Headers.SdkVersionHeaderName), "Unexpected request stats header present.");
+            Assert.False(
+                httpRequestMessage.Headers.Contains(CoreConstants.Headers.SdkVersionHeaderName));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task SendAsync()
         {
             var requestUrl = string.Concat(this.baseUrl, "/me/drive/items/id");
@@ -158,15 +153,14 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 var responseItem = await baseRequest.SendAsync<DerivedTypeClass>("string", CancellationToken.None);
 
-                Assert.IsNotNull(responseItem, "DerivedTypeClass not returned.");
-                Assert.AreEqual(expectedResponseItem.Id, responseItem.Id, "Unexpected ID.");
+                Assert.NotNull(responseItem);
+                Assert.Equal(expectedResponseItem.Id, responseItem.Id);
 
                 this.authenticationProvider.Verify(provider => provider.AuthenticateRequestAsync(It.IsAny<HttpRequestMessage>()), Times.Once);
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task SendAsync_AuthenticationProviderNotSet()
         {
             var client = new BaseClient("https://localhost", null);
@@ -175,17 +169,17 @@ namespace Microsoft.Graph.Core.Test.Requests
 
             try
             {
-                await baseRequest.SendAsync<DerivedTypeClass>("string", CancellationToken.None);
+                await Assert.ThrowsAsync<ServiceException>(async () => await baseRequest.SendAsync<DerivedTypeClass>("string", CancellationToken.None));
             }
             catch (ServiceException exception)
             {
-                Assert.AreEqual(ErrorConstants.Codes.InvalidRequest, exception.Error.Code, "Unexpected error code.");
-                Assert.AreEqual(ErrorConstants.Messages.AuthenticationProviderMissing, exception.Error.Message, "Unexpected error message.");
+                Assert.Equal(ErrorConstants.Codes.InvalidRequest, exception.Error.Code);
+                Assert.Equal(ErrorConstants.Messages.AuthenticationProviderMissing, exception.Error.Message);
                 throw;
             }
         }
 
-        [TestMethod]
+        [Fact]
         public async Task SendAsync_NoReturnObject()
         {
             var requestUrl = string.Concat(this.baseUrl, "/me/drive/items/id");
@@ -207,7 +201,7 @@ namespace Microsoft.Graph.Core.Test.Requests
                         HttpCompletionOption.ResponseContentRead,
                         CancellationToken.None))
                     .Returns(Task.FromResult(httpResponseMessage));
-                
+
                 this.serializer.Setup(
                     serializer => serializer.SerializeObject(It.IsAny<string>()))
                     .Returns(string.Empty);
@@ -218,7 +212,7 @@ namespace Microsoft.Graph.Core.Test.Requests
             }
         }
 
-        [TestMethod]
+        [Fact]
         public async Task SendAsync_NullResponseBody()
         {
             var requestUrl = string.Concat(this.baseUrl, "/me/drive/items/id");
@@ -244,14 +238,13 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 var instance = await baseRequest.SendAsync<DerivedTypeClass>("string", CancellationToken.None);
 
-                Assert.IsNull(instance, "Unexpected object returned.");
+                Assert.Null(instance);
 
                 this.authenticationProvider.Verify(provider => provider.AuthenticateRequestAsync(It.IsAny<HttpRequestMessage>()), Times.Once);
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task SendAsync_RequestUrlNotSet()
         {
             var baseRequest = new BaseRequest("https://localhost", this.baseClient);
@@ -260,17 +253,17 @@ namespace Microsoft.Graph.Core.Test.Requests
 
             try
             {
-                await baseRequest.SendAsync<DerivedTypeClass>("string", CancellationToken.None);
+                await Assert.ThrowsAsync<ServiceException>(async () => await baseRequest.SendAsync<DerivedTypeClass>("string", CancellationToken.None));
             }
             catch (ServiceException exception)
             {
-                Assert.AreEqual(ErrorConstants.Codes.InvalidRequest, exception.Error.Code, "Unexpected error code.");
-                Assert.AreEqual(ErrorConstants.Messages.RequestUrlMissing, exception.Error.Message, "Unexpected error message.");
+                Assert.Equal(ErrorConstants.Codes.InvalidRequest, exception.Error.Code);
+                Assert.Equal(ErrorConstants.Messages.RequestUrlMissing, exception.Error.Message);
                 throw;
             }
         }
 
-        [TestMethod]
+        [Fact]
         public async Task SendStreamRequestAsync()
         {
             var requestUrl = string.Concat(this.baseUrl, "/me/photo/$value");
@@ -282,7 +275,7 @@ namespace Microsoft.Graph.Core.Test.Requests
             using (var streamContent = new StreamContent(responseStream))
             {
                 httpResponseMessage.Content = streamContent;
-                
+
                 this.httpProvider.Setup(
                     provider => provider.SendAsync(
                         It.Is<HttpRequestMessage>(
@@ -294,12 +287,12 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 using (var returnedResponseStream = await baseRequest.SendStreamRequestAsync(requestStream, CancellationToken.None))
                 {
-                    Assert.AreEqual(await httpResponseMessage.Content.ReadAsStreamAsync(), returnedResponseStream, "Unexpected stream returned.");
+                    Assert.Equal(await httpResponseMessage.Content.ReadAsStreamAsync(), returnedResponseStream);
                 }
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void BuildQueryString_NullQueryOptions()
         {
             var baseRequest = new BaseRequest("https://localhost", this.baseClient);
@@ -308,7 +301,7 @@ namespace Microsoft.Graph.Core.Test.Requests
 
             var queryString = baseRequest.BuildQueryString();
 
-            Assert.IsNull(queryString, "Unexpected query string returned.");
+            Assert.Null(queryString);
         }
     }
 }

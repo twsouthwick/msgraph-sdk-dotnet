@@ -2,24 +2,24 @@
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Core.Test.Requests
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.Graph;
+using Microsoft.Graph.DotnetCore.Core.Test.Mocks;
+using Moq;
+using Microsoft.Graph.DotnetCore.Core.Test.TestModels;
+using Xunit;
+
+namespace Microsoft.Graph.DotnetCore.Core.Test.Requests
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Net;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-
-    using Microsoft.Graph;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Mocks;
-    using Moq;
-    using TestModels;
-
-    [TestClass]
-    public class AsyncMonitorTests
+    public class AsyncMonitorTests : IDisposable
     {
         private const string itemUrl = "https://localhost/item";
         private const string monitorUrl = "https://localhost/monitor";
@@ -32,8 +32,7 @@ namespace Microsoft.Graph.Core.Test.Requests
         private MockProgress progress;
         private MockSerializer serializer;
 
-        [TestInitialize]
-        public void Setup()
+        public AsyncMonitorTests()
         {
             this.authenticationProvider = new MockAuthenticationProvider();
             this.serializer = new MockSerializer();
@@ -47,24 +46,23 @@ namespace Microsoft.Graph.Core.Test.Requests
             this.client.SetupGet(client => client.HttpProvider).Returns(this.httpProvider.Object);
 
             this.progress = new MockProgress();
-            
+
             this.asyncMonitor = new AsyncMonitor<DerivedTypeClass>(this.client.Object, AsyncMonitorTests.monitorUrl);
         }
 
-        [TestCleanup]
-        public void Teardown()
+        public void Dispose()
         {
             this.httpResponseMessage.Dispose();
         }
 
-        [TestMethod]
+        [Fact]
         public async Task PollForOperationCompletionAsync_IsCancelled()
         {
             var item = await this.asyncMonitor.PollForOperationCompletionAsync(this.progress.Object, new CancellationToken(true));
-            Assert.IsNull(item, "Operation not cancelled.");
+            Assert.Null(item);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task PollForOperationCompletionAsync_OperationCompleted()
         {
             bool called = false;
@@ -91,10 +89,10 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 var item = await this.asyncMonitor.PollForOperationCompletionAsync(this.progress.Object, CancellationToken.None);
 
-                Assert.IsTrue(called, "Progress not called");
-                Assert.IsNotNull(item, "No item returned.");
-                Assert.AreEqual("id", item.Id, "Unexpected item returned.");
-                
+                Assert.True(called);
+                Assert.NotNull(item);
+                Assert.Equal("id", item.Id);
+
                 this.authenticationProvider.Verify(
                     provider => provider.AuthenticateRequestAsync(
                         It.Is<HttpRequestMessage>(message => message.RequestUri.ToString().Equals(AsyncMonitorTests.monitorUrl))),
@@ -107,7 +105,7 @@ namespace Microsoft.Graph.Core.Test.Requests
             }
         }
 
-        [TestMethod]
+        [Fact]
         public async Task PollForOperationCompletionAsync_OperationCancelled()
         {
             this.serializer.Setup(
@@ -119,16 +117,16 @@ namespace Microsoft.Graph.Core.Test.Requests
             {
                 this.httpResponseMessage.Content = stringContent;
                 this.httpResponseMessage.StatusCode = HttpStatusCode.Accepted;
-                
+
                 var item = await this.asyncMonitor.PollForOperationCompletionAsync(this.progress.Object, CancellationToken.None);
-                Assert.IsNull(item, "Unexpected item returned.");
+                Assert.Null(item);
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task PollForOperationCompletionAsync_OperationDeleteFailed()
         {
+            
             this.serializer.Setup(
                 serializer => serializer.DeserializeObject<AsyncOperationStatus>(
                     It.IsAny<Stream>()))
@@ -141,28 +139,27 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 try
                 {
-                    await this.asyncMonitor.PollForOperationCompletionAsync(this.progress.Object, CancellationToken.None);
+                    await Assert.ThrowsAsync<ServiceException>(async () => await this.asyncMonitor.PollForOperationCompletionAsync(this.progress.Object, CancellationToken.None));
                 }
                 catch (ServiceException exception)
                 {
-                    Assert.AreEqual(ErrorConstants.Codes.GeneralException, exception.Error.Code, "Unexpected error code.");
+                    Assert.Equal(ErrorConstants.Codes.GeneralException, exception.Error.Code);
                     throw;
                 }
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task PollForOperationCompletionAsync_OperationFailed()
         {
             this.serializer.Setup(
                 serializer => serializer.DeserializeObject<AsyncOperationStatus>(
                     It.IsAny<Stream>()))
                 .Returns(new AsyncOperationStatus
-                    {
-                        AdditionalData = new Dictionary<string, object> { { "message", "message" } },
-                        Status = "failed"
-                    });
+                {
+                    AdditionalData = new Dictionary<string, object> { { "message", "message" } },
+                    Status = "failed"
+                });
 
             using (var stringContent = new StringContent("content"))
             {
@@ -171,19 +168,18 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 try
                 {
-                    await this.asyncMonitor.PollForOperationCompletionAsync(this.progress.Object, CancellationToken.None);
+                    await Assert.ThrowsAsync<ServiceException>(async () => await this.asyncMonitor.PollForOperationCompletionAsync(this.progress.Object, CancellationToken.None));
                 }
                 catch (ServiceException exception)
                 {
-                    Assert.AreEqual(ErrorConstants.Codes.GeneralException, exception.Error.Code, "Unexpected error code.");
-                    Assert.AreEqual("message", exception.Error.Message, "Unexpected error message.");
+                    Assert.Equal(ErrorConstants.Codes.GeneralException, exception.Error.Code);
+                    Assert.Equal("message", exception.Error.Message);
                     throw;
                 }
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ServiceException))]
+        [Fact]
         public async Task PollForOperationCompletionAsync_OperationNull()
         {
             this.serializer.Setup(
@@ -198,11 +194,11 @@ namespace Microsoft.Graph.Core.Test.Requests
 
                 try
                 {
-                    await this.asyncMonitor.PollForOperationCompletionAsync(this.progress.Object, CancellationToken.None);
+                    await Assert.ThrowsAsync<ServiceException>(async () => await this.asyncMonitor.PollForOperationCompletionAsync(this.progress.Object, CancellationToken.None));
                 }
                 catch (ServiceException exception)
                 {
-                    Assert.AreEqual(ErrorConstants.Codes.GeneralException, exception.Error.Code, "Unexpected error code.");
+                    Assert.Equal(ErrorConstants.Codes.GeneralException, exception.Error.Code);
                     throw;
                 }
             }

@@ -2,17 +2,17 @@
 //  Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 // ------------------------------------------------------------------------------
 
-namespace Microsoft.Graph.Test.Requests.Functional
-{
-    using Microsoft.Graph;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Newtonsoft.Json.Linq;
-    using System;
-    using System.Net.Http;
-    using System.Threading.Tasks;
+using Microsoft.Graph;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Xunit;
 
-    [Ignore]
-    [TestClass]
+namespace Microsoft.Graph.DotnetCore.Test.Requests.Functional
+{
     public class GraphTestBase
     {
         private readonly string clientId;
@@ -20,7 +20,7 @@ namespace Microsoft.Graph.Test.Requests.Functional
         private readonly string password;
         private readonly string contentType = "application/x-www-form-urlencoded";
         // Don't use password grant in your apps. Only use for legacy solutions and automated testing.
-        private readonly string grantType = "password"; 
+        private readonly string grantType = "password";
         private readonly string tokenEndpoint = "https://login.microsoftonline.com/common/oauth2/token";
         private readonly string resourceId = "https%3A%2F%2Fgraph.microsoft.com%2F";
 
